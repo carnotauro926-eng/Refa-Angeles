@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Refa Angeles – Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+body{
+    background:#f4f7fb;
+    min-height:100vh;
+}
+.header{
+    background:#0f172a;
+    color:white;
+    padding:15px 25px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+}
+.logo{
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+.logo img{width:55px;height:55px;object-fit:contain;}
+.logo h1{font-size:1.4rem;}
+.header-right{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+}
+.user-badge{
+    background:#1e293b;
+    color:#94a3b8;
+    padding:8px 14px;
+    border-radius:8px;
+    font-size:.9rem;
+}
+.btn-logout{
+    background:transparent;
+    color:#94a3b8;
+    border:1px solid #334155;
+    padding:10px 18px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:.2s;
+}
+.btn-logout:hover{
+    background:#ef4444;
+    color:white;
+    border-color:#ef4444;
+}
+.container{
+    padding:20px;
+    max-width:1200px;
+    margin:0 auto;
+}
+.actions{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:25px;
+}
+.btn{
+    border:none;
+    background:#2563eb;
+    color:white;
+    padding:14px 22px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:.95rem;
+    font-weight:600;
+    transition:.2s;
+}
+.btn:hover{background:#1d4ed8;}
+.cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+    margin-bottom:25px;
+}
+.card{
+    background:white;
+    border-radius:15px;
+    padding:22px;
+    box-shadow:0 4px 15px rgba(0,0,0,.07);
+}
+.card h3{
+    color:#64748b;
+    font-size:.95rem;
+    margin-bottom:10px;
+}
+.card span{
+    font-size:2rem;
+    font-weight:bold;
+    color:#0f172a;
+}
+.chart-wrapper{
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 4px 15px rgba(0,0,0,.07);
+}
+.chart-filters{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+}
+.btn-filter{
+    border:none;
+    padding:9px 18px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:.9rem;
+    font-weight:600;
+    background:#e5e7eb;
+    color:#374151;
+    transition:.2s;
+}
+.btn-filter.active{
+    background:#2563eb;
+    color:white;
+}
+.chart-container{
+    height:350px;
+    position:relative;
+}
+@media(max-width:768px){
+    .header{flex-direction:column;align-items:flex-start;}
+    .actions{flex-direction:column;}
+    .btn{width:100%;text-align:center;}
+    .header-right{width:100%;justify-content:space-between;}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+    <div class="logo">
+        <img src="3.png" alt="Logo">
+        <h1>Panel Administrador</h1>
+    </div>
+    <div class="header-right">
+        <span class="user-badge" id="nombreUsuario">Cargando...</span>
+        <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+    </div>
+</header>
+
+<div class="container">
+
+    <div class="actions">
+        <button class="btn" onclick="abrirInventario()">📦 Inventario</button>
+        <button class="btn" onclick="venderProducto()">🛒 Vender</button>
+        <button class="btn" id="btn-pdf" onclick="exportarPDF()">📄 Exportar PDF</button>
+    </div>
+
+    <div class="cards">
+        <div class="card"><h3>Ventas Hoy</h3><span id="ventasDia">$0</span></div>
+        <div class="card"><h3>Ventas Semana</h3><span id="ventasSemana">$0</span></div>
+        <div class="card"><h3>Ventas Mes</h3><span id="ventasMes">$0</span></div>
+    </div>
+
+    <div class="chart-wrapper">
+        <div class="chart-filters">
+            <button class="btn-filter active" onclick="cambiarGrafica('dia',this)">Hoy</button>
+            <button class="btn-filter" onclick="cambiarGrafica('semana',this)">Semana</button>
+            <button class="btn-filter" onclick="cambiarGrafica('mes',this)">Mes</button>
+            <button class="btn-filter" onclick="cambiarGrafica('todo',this)">Todo</button>
+        </div>
+        <div class="chart-container">
+            <canvas id="ventasChart"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// --- Verificar sesión ---
+const usuarioActivo = JSON.parse(localStorage.getItem("activeUser"));
+if(!usuarioActivo || usuarioActivo.perfil !== "admin"){
+    window.location.replace("index.html");
+}
+document.getElementById("nombreUsuario").textContent = "👤 " + (usuarioActivo ? usuarioActivo.usuario : "");
+
+// --- Supabase ---
+const SUPABASE_URL = "https://xbfhbdxdglntubhdicln.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_7tENznRWZVxSBG4NWBZ5GQ_2zliMUHM";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let ventasData = [];
+let chart;
+
+function generarGrafica(data){
+    const ctx = document.getElementById("ventasChart").getContext("2d");
+    const porDia = {};
+
+    data.forEach(v => {
+        const fecha = new Date(v.fecha);
+        if(isNaN(fecha)) return;
+        const dia = fecha.toLocaleDateString("es-MX");
+        porDia[dia] = (porDia[dia] || 0) + Number(v.total);
+    });
+
+    const ordenado = Object.entries(porDia).sort((a, b) => {
+        const [da, ma, ya] = a[0].split("/").map(Number);
+        const [db, mb, yb] = b[0].split("/").map(Number);
+        return new Date(ya, ma-1, da) - new Date(yb, mb-1, db);
+    });
+
+    const labels = ordenado.map(x => x[0]);
+    const values = ordenado.map(x => x[1]);
+
+    if(chart) chart.destroy();
+
+    chart = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels,
+            datasets:[{
+                label: "Ventas ($)",
+                data: values,
+                backgroundColor: "rgba(37,99,235,0.85)",
+                borderRadius: 6
+            }]
+        },
+        options:{
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins:{
+                legend:{ display: false }
+            },
+            scales:{
+                y:{
+                    beginAtZero: true,
+                    ticks:{
+                        callback: v => "$" + v.toLocaleString("es-MX")
+                    }
+                }
+            }
+        }
+    });
+}
+
+function obtenerFiltrado(tipo){
+    const ahora = new Date();
+    return ventasData.filter(v => {
+        const fecha = new Date(v.fecha);
+        if(isNaN(fecha)) return false;
+        if(tipo === "dia"){
+            const hoy = new Date(); hoy.setHours(0,0,0,0);
+            const f = new Date(fecha); f.setHours(0,0,0,0);
+            return hoy.getTime() === f.getTime();
+        }
+        const diff = (ahora - fecha) / (1000*60*60*24);
+        if(tipo === "semana") return diff <= 7;
+        if(tipo === "mes") return diff <= 30;
+        return true;
+    });
+}
+
+function cambiarGrafica(tipo, btn){
+    document.querySelectorAll(".btn-filter").forEach(b => b.classList.remove("active"));
+    if(btn) btn.classList.add("active");
+    generarGrafica(obtenerFiltrado(tipo));
+}
+
+async function exportarPDF(){
+    const boton = document.getElementById("btn-pdf");
+    boton.textContent = "Generando...";
+    boton.disabled = true;
+    try{
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF();
+        const img = document.getElementById("ventasChart").toDataURL("image/png");
+        const hoy = new Date().toLocaleDateString("es-MX");
+        pdf.setFontSize(16);
+        pdf.text("REFA ANGELES – Reporte de Ventas", 10, 15);
+        pdf.setFontSize(10);
+        pdf.text("Generado: " + hoy, 10, 22);
+        pdf.addImage(img, "PNG", 10, 30, 185, 90);
+        const totalGeneral = ventasData.reduce((a,b) => a + Number(b.total), 0);
+        pdf.text("Total general: $" + totalGeneral.toLocaleString("es-MX"), 10, 130);
+        pdf.save("reporte-ventas-" + hoy + ".pdf");
+    }catch(e){
+        console.error(e);
+        alert("Error al generar PDF");
+    }
+    boton.textContent = "📄 Exportar PDF";
+    boton.disabled = false;
+}
+
+function abrirInventario(){ window.location.href = "inventario.html"; }
+function venderProducto(){ window.location.href = "venta.html"; }
+
+function cerrarSesion(){
+    localStorage.removeItem("activeUser");
+    window.location.replace("index.html");
+}
+
+async function cargarVentas(){
+    const { data, error } = await supabaseClient
+        .from("ventas")
+        .select("total,fecha");
+
+    if(error){ console.error(error); return; }
+
+    let hoy = 0, semana = 0, mes = 0;
+    const ahora = new Date();
+
+    data.forEach(v => {
+        const fecha = new Date(v.fecha);
+        if(isNaN(fecha)) return;
+        const diff = (ahora - fecha) / (1000*60*60*24);
+        const hoyRef = new Date(); hoyRef.setHours(0,0,0,0);
+        const f = new Date(fecha); f.setHours(0,0,0,0);
+        if(hoyRef.getTime() === f.getTime()) hoy += Number(v.total);
+        if(diff <= 7) semana += Number(v.total);
+        if(diff <= 30) mes += Number(v.total);
+    });
+
+    document.getElementById("ventasDia").textContent = "$" + hoy.toLocaleString("es-MX");
+    document.getElementById("ventasSemana").textContent = "$" + semana.toLocaleString("es-MX");
+    document.getElementById("ventasMes").textContent = "$" + mes.toLocaleString("es-MX");
+
+    ventasData = data;
+    cambiarGrafica("dia", null);
+}
+
+cargarVentas();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Refa Angeles – Inventario</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+body{background:#f4f6f9;}
+.header{
+    background:#0f172a;
+    color:white;
+    padding:15px 25px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+}
+.logo{display:flex;align-items:center;gap:15px;}
+.logo img{width:55px;height:55px;object-fit:contain;}
+.logo h1{font-size:1.4rem;}
+.header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.btn{
+    border:none;
+    background:#2563eb;
+    color:white;
+    padding:11px 18px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+    font-size:.9rem;
+    transition:.2s;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+}
+.btn:hover{background:#1d4ed8;}
+.btn-logout{
+    background:transparent;
+    color:#94a3b8;
+    border:1px solid #334155;
+    padding:10px 18px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:.9rem;
+    font-weight:500;
+    transition:.2s;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+}
+.btn-logout:hover{background:#ef4444;color:white;border-color:#ef4444;}
+.container{padding:20px;max-width:1400px;margin:0 auto;}
+.top-bar{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+    align-items:center;
+}
+.search{flex:1;min-width:220px;}
+.search input{
+    width:100%;
+    padding:11px 14px;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    outline:none;
+    font-size:.95rem;
+}
+.search input:focus{border-color:#2563eb;}
+select{
+    padding:11px 14px;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    outline:none;
+    background:white;
+    font-size:.95rem;
+    cursor:pointer;
+}
+select:focus{border-color:#2563eb;}
+.card{
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    box-shadow:0 4px 15px rgba(0,0,0,.08);
+}
+.table-container{overflow:auto;}
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:900px;
+}
+th{
+    background:#0f172a;
+    color:white;
+    padding:12px 14px;
+    text-align:center;
+    font-size:.9rem;
+}
+td{
+    padding:11px 14px;
+    border-bottom:1px solid #e5e7eb;
+    text-align:center;
+    font-size:.9rem;
+}
+tr:hover{background:#f8fafc;}
+.stock-ok{color:#16a34a;font-weight:700;}
+.stock-low{color:#dc2626;font-weight:700;}
+.btn-eliminar{
+    background:#dc2626;
+    color:white;
+    border:none;
+    padding:6px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:.85rem;
+    font-weight:600;
+    transition:.2s;
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+}
+.btn-eliminar:hover{background:#b91c1c;}
+
+/* Modal */
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+}
+.modal-content{
+    background:white;
+    width:90%;
+    max-width:420px;
+    padding:35px;
+    border-radius:20px;
+    text-align:center;
+    box-shadow:0 10px 40px rgba(0,0,0,.25);
+    animation:subir .3s ease;
+}
+@keyframes subir{
+    from{transform:translateY(25px);opacity:0;}
+    to{transform:translateY(0);opacity:1;}
+}
+.modal-icono{
+    width:75px;height:75px;
+    margin:0 auto 20px;
+    border-radius:50%;
+    background:#dc2626;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.8rem;
+}
+.modal-content h2{margin-bottom:12px;color:#0f172a;}
+.modal-content p{color:#64748b;line-height:1.5;}
+.modal-buttons{
+    margin-top:25px;
+    display:flex;
+    gap:12px;
+}
+.btn-modal{
+    flex:1;
+    border:none;
+    padding:13px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:700;
+    font-size:.95rem;
+    transition:.2s;
+}
+.btn-cancelar{background:#e2e8f0;color:#334155;}
+.btn-cancelar:hover{background:#cbd5e1;}
+.btn-confirmar{background:#dc2626;color:white;}
+.btn-confirmar:hover{background:#b91c1c;}
+
+@media(max-width:768px){
+    .header{flex-direction:column;align-items:flex-start;}
+    .header-actions{width:100%;flex-direction:column;}
+    .btn,.btn-logout{width:100%;justify-content:center;}
+    .top-bar{flex-direction:column;}
+    .search,.top-bar select{width:100%;}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+    <div class="logo">
+        <img src="3.png" alt="Logo">
+        <h1>Inventario</h1>
+    </div>
+    <div class="header-actions">
+        <button class="btn" onclick="regresarPanel()">
+            <i class="fas fa-arrow-left"></i> Regresar
+        </button>
+        <button id="btnAgregarProducto" class="btn" onclick="irAAgregarProducto()">
+            <i class="fas fa-plus"></i> Agregar Producto
+        </button>
+        <button class="btn-logout" onclick="cerrarSesion()">
+            <i class="fas fa-door-open"></i> Cerrar Sesión
+        </button>
+    </div>
+</header>
+
+<div class="container">
+
+    <div class="top-bar">
+        <div class="search">
+            <input type="text" id="buscador"
+                placeholder="Buscar producto, código, marca..."
+                oninput="filtrarProductos()">
+        </div>
+        <select id="filtroCategoria" onchange="filtrarProductos()">
+            <option value="">Todas las categorías</option>
+            <option>Químicos</option>
+            <option>Tornillería</option>
+            <option>Hules</option>
+            <option>Refacciones</option>
+            <option>Partes Eléctricas</option>
+        </select>
+    </div>
+
+    <div class="card">
+        <div class="table-container">
+            <table id="tablaInventario">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Categoría</th>
+                        <th>Proveedor</th>
+                        <th>Marca</th>
+                        <th>Pieza</th>
+                        <th>Modelo</th>
+                        <th>Año</th>
+                        <th>Precio</th>
+                        <th>Stock</th>
+                        <th id="colAcciones">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="inventarioBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal confirmación eliminar -->
+<div id="modalEliminar" class="modal">
+    <div class="modal-content">
+        <div class="modal-icono">
+            <i class="fas fa-trash"></i>
+        </div>
+        <h2>Eliminar producto</h2>
+        <p id="textoEliminar"></p>
+        <div class="modal-buttons">
+            <button class="btn-modal btn-cancelar" onclick="cerrarModalEliminar()">Cancelar</button>
+            <button class="btn-modal btn-confirmar" onclick="confirmarEliminacion()">Eliminar</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script>
+// --- Sesión ---
+const usuarioActivo = JSON.parse(localStorage.getItem("activeUser"));
+if(!usuarioActivo){ window.location.replace("index.html"); }
+
+// Ocultar botón agregar si no es admin
+if(usuarioActivo && usuarioActivo.perfil !== "admin"){
+    document.getElementById("btnAgregarProducto").style.display = "none";
+    document.getElementById("colAcciones").style.display = "none";
+}
+
+// --- Supabase ---
+const SUPABASE_URL = "https://xbfhbdxdglntubhdicln.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_7tENznRWZVxSBG4NWBZ5GQ_2zliMUHM";
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let inventario = [];
+let indiceEliminar = null;
+
+async function cargarInventario(){
+    const tbody = document.getElementById("inventarioBody");
+    tbody.innerHTML = `<tr><td colspan="10" style="padding:20px;color:#2563eb;">Cargando...</td></tr>`;
+
+    const { data, error } = await supabaseClient
+        .from("inventario")
+        .select("*")
+        .order("id", { ascending: false });
+
+    if(error){
+        tbody.innerHTML = `<tr><td colspan="10" style="padding:20px;color:red;">Error al cargar: ${error.message}</td></tr>`;
+        return;
+    }
+    inventario = data;
+    renderizarTabla();
+}
+
+function renderizarTabla(lista){
+    const body = document.getElementById("inventarioBody");
+    const datos = lista !== undefined ? lista : inventario;
+    const esAdmin = usuarioActivo && usuarioActivo.perfil === "admin";
+
+    if(datos.length === 0){
+        body.innerHTML = `<tr><td colspan="10" style="padding:25px;color:#6b7280;">No hay productos registrados</td></tr>`;
+        return;
+    }
+
+    body.innerHTML = datos.map((p, index) => `
+        <tr>
+            <td>${p.codigo_producto || ''}</td>
+            <td>${p.categoria || ''}</td>
+            <td>${p.proveedor || ''}</td>
+            <td>${p.marca || ''}</td>
+            <td>${p.nombre_pieza || ''}</td>
+            <td>${p.modelo_auto || ''}</td>
+            <td>${p.anio || ''}</td>
+            <td>$${parseFloat(p.precio || 0).toFixed(2)}</td>
+            <td class="${p.stock <= 10 ? 'stock-low' : 'stock-ok'}">${p.stock}</td>
+            <td>${esAdmin ? `<button class="btn-eliminar" onclick="eliminarProducto(${inventario.indexOf(p)})"><i class="fas fa-trash"></i> Eliminar</button>` : ''}</td>
+        </tr>
+    `).join('');
+}
+
+function filtrarProductos(){
+    const texto = document.getElementById("buscador").value.toLowerCase().trim();
+    const catFiltro = document.getElementById("filtroCategoria").value;
+
+    const filtrado = inventario.filter(p => {
+        const coincideTexto = !texto ||
+            (p.codigo_producto || '').toLowerCase().includes(texto) ||
+            (p.marca || '').toLowerCase().includes(texto) ||
+            (p.nombre_pieza || '').toLowerCase().includes(texto) ||
+            (p.proveedor || '').toLowerCase().includes(texto) ||
+            (p.modelo_auto || '').toLowerCase().includes(texto);
+
+        const coincideCat = !catFiltro || p.categoria === catFiltro;
+        return coincideTexto && coincideCat;
+    });
+    renderizarTabla(filtrado);
+}
+
+function eliminarProducto(index){
+    indiceEliminar = index;
+    const p = inventario[index];
+    document.getElementById("textoEliminar").innerHTML = `¿Deseas eliminar <b>${p.nombre_pieza}</b>?`;
+    document.getElementById("modalEliminar").style.display = "flex";
+}
+
+function cerrarModalEliminar(){
+    document.getElementById("modalEliminar").style.display = "none";
+    indiceEliminar = null;
+}
+
+async function confirmarEliminacion(){
+    if(indiceEliminar === null) return;
+    const producto = inventario[indiceEliminar];
+    cerrarModalEliminar();
+
+    const btn = document.querySelector(".btn-confirmar");
+
+    try{
+        const { error } = await supabaseClient
+            .from("inventario")
+            .delete()
+            .eq("id", producto.id);
+
+        if(error) throw error;
+
+        inventario.splice(indiceEliminar, 1);
+        renderizarTabla();
+
+    }catch(err){
+        console.error(err);
+        alert("Error al eliminar: " + err.message);
+    }
+}
+
+function irAAgregarProducto(){
+    window.location.href = "agregaproducto.html";
+}
+
+function regresarPanel(){
+    if(!usuarioActivo){ window.location.href = "index.html"; return; }
+    window.location.href = usuarioActivo.perfil === "admin" ? "paneladmin.html" : "panelgenerico.html";
+}
+
+function cerrarSesion(){
+    localStorage.removeItem("activeUser");
+    window.location.replace("index.html");
+}
+
+cargarInventario();
+</script>
+
+</body>
+</html>

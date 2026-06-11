@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Refa Angeles</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+*{
+    box-sizing:border-box;
+    font-family:'Inter',sans-serif;
+}
+body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    padding:20px;
+}
+.card{
+    width:1400px;
+    max-width:100%;
+    min-height:750px;
+    display:flex;
+    overflow:hidden;
+    border-radius:25px;
+    background:white;
+    box-shadow:0 25px 60px rgba(0,0,0,.35);
+    animation:fadeIn .7s ease;
+}
+@keyframes fadeIn{
+    from{opacity:0;transform:translateY(20px);}
+    to{opacity:1;transform:translateY(0);}
+}
+.left{
+    flex:1;
+    background:#2563eb;
+    color:white;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    padding:40px;
+}
+.left img{
+    width:180px;
+    margin-bottom:20px;
+}
+.left h2{
+    font-size:3rem;
+    margin:0;
+    text-align:center;
+}
+.right{
+    flex:1;
+    padding:50px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+}
+.tabs{
+    display:flex;
+    gap:10px;
+    margin-bottom:25px;
+}
+.tabs button{
+    flex:1;
+    padding:16px;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    background:#e5e7eb;
+    font-size:1rem;
+    font-weight:600;
+    transition:.2s;
+}
+.tabs button.active{
+    background:#2563eb;
+    color:white;
+}
+.form{
+    display:none;
+}
+.form.active{
+    display:block;
+}
+input,select{
+    width:100%;
+    padding:16px;
+    margin:10px 0;
+    border:1px solid #d1d5db;
+    border-radius:12px;
+    font-size:1rem;
+    outline:none;
+    box-sizing:border-box;
+}
+input:focus,select:focus{
+    border-color:#2563eb;
+}
+.submit{
+    width:100%;
+    padding:16px;
+    border:none;
+    border-radius:12px;
+    background:#2563eb;
+    color:white;
+    font-size:1rem;
+    font-weight:700;
+    cursor:pointer;
+    transition:.2s;
+    margin-top:5px;
+}
+.submit:hover{background:#1d4ed8;}
+.msg{
+    margin-top:15px;
+    text-align:center;
+    font-weight:600;
+    min-height:24px;
+}
+@media(max-width:992px){
+    .card{width:100%;min-height:auto;}
+    .left h2{font-size:2.2rem;}
+}
+@media(max-width:768px){
+    .card{flex-direction:column;}
+    .left{padding:30px 20px;}
+    .left img{width:100px;}
+    .left h2{font-size:1.8rem;}
+    .right{padding:25px 20px;}
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+
+<div class="left">
+    <img src="3.png" alt="Logo Refa Angeles">
+    <h2>Refa Angeles</h2>
+</div>
+
+<div class="right">
+
+<div class="tabs">
+    <button type="button" id="btnLogin" class="active">Iniciar Sesión</button>
+    <button type="button" id="btnReg">Registro</button>
+</div>
+
+<div id="loginForm" class="form active">
+    <input id="loginUser" placeholder="Usuario" autocomplete="username">
+    <input id="loginPass" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button type="button" class="submit" onclick="login()">Entrar</button>
+</div>
+
+<div id="regForm" class="form">
+    <input id="regUser" placeholder="Usuario" autocomplete="username">
+    <input id="regPass" type="password" placeholder="Contraseña" autocomplete="new-password">
+    <select id="regPerfil">
+        <option value="">Seleccione perfil</option>
+        <option value="admin">Administrador</option>
+        <option value="generico">Genérico</option>
+    </select>
+    <button type="button" class="submit" onclick="register()">Crear cuenta</button>
+</div>
+
+<div id="msg" class="msg"></div>
+
+</div>
+</div>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://xbfhbdxdglntubhdicln.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_7tENznRWZVxSBG4NWBZ5GQ_2zliMUHM";
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const msg = document.getElementById("msg");
+const loginForm = document.getElementById("loginForm");
+const regForm = document.getElementById("regForm");
+const btnLogin = document.getElementById("btnLogin");
+const btnReg = document.getElementById("btnReg");
+
+// Si ya hay sesión activa, redirigir directamente
+const sesionActiva = localStorage.getItem("activeUser");
+if(sesionActiva){
+    try{
+        const u = JSON.parse(sesionActiva);
+        if(u && u.perfil){
+            window.location.replace(u.perfil === "admin" ? "paneladmin.html" : "panelgenerico.html");
+        }
+    }catch(e){ localStorage.removeItem("activeUser"); }
+}
+
+btnLogin.addEventListener("click", () => {
+    loginForm.classList.add("active");
+    regForm.classList.remove("active");
+    btnLogin.classList.add("active");
+    btnReg.classList.remove("active");
+    msg.textContent = "";
+});
+
+btnReg.addEventListener("click", () => {
+    regForm.classList.add("active");
+    loginForm.classList.remove("active");
+    btnReg.classList.add("active");
+    btnLogin.classList.remove("active");
+    msg.textContent = "";
+});
+
+// Permitir Enter para login
+document.getElementById("loginPass").addEventListener("keydown", e => {
+    if(e.key === "Enter") login();
+});
+
+async function register(){
+    const usuario = document.getElementById("regUser").value.trim();
+    const password = document.getElementById("regPass").value;
+    const perfil = document.getElementById("regPerfil").value;
+
+    if(!usuario || !password || !perfil){
+        msg.style.color = "red";
+        msg.textContent = "Complete todos los campos";
+        return;
+    }
+
+    msg.style.color = "#2563eb";
+    msg.textContent = "Registrando...";
+
+    const { error } = await supabaseClient
+        .from("usuarios")
+        .insert([{ usuario, password, perfil }]);
+
+    if(error){
+        msg.style.color = "red";
+        msg.textContent = error.message.includes("unique") ? "Ese usuario ya existe" : error.message;
+        return;
+    }
+
+    const { data: usuarioRegistrado } = await supabaseClient
+        .from("usuarios")
+        .select("*")
+        .eq("usuario", usuario)
+        .single();
+
+    localStorage.setItem("activeUser", JSON.stringify(usuarioRegistrado));
+
+    msg.style.color = "green";
+    msg.textContent = "Usuario registrado. Redirigiendo...";
+
+    setTimeout(() => {
+        window.location.href = perfil === "admin" ? "paneladmin.html" : "panelgenerico.html";
+    }, 1000);
+}
+
+async function login(){
+    const usuario = document.getElementById("loginUser").value.trim();
+    const password = document.getElementById("loginPass").value;
+
+    if(!usuario || !password){
+        msg.style.color = "red";
+        msg.textContent = "Complete todos los campos";
+        return;
+    }
+
+    msg.style.color = "#2563eb";
+    msg.textContent = "Iniciando sesión...";
+
+    const { data, error } = await supabaseClient
+        .from("usuarios")
+        .select("*")
+        .eq("usuario", usuario)
+        .eq("password", password)
+        .single();
+
+    if(error || !data){
+        msg.style.color = "red";
+        msg.textContent = "Usuario o contraseña incorrectos";
+        return;
+    }
+
+    localStorage.setItem("activeUser", JSON.stringify(data));
+
+    msg.style.color = "green";
+    msg.textContent = "Bienvenido " + data.usuario;
+
+    setTimeout(() => {
+        window.location.href = data.perfil === "admin" ? "paneladmin.html" : "panelgenerico.html";
+    }, 1000);
+}
+</script>
+
+</body>
+</html>
