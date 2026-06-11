@@ -530,6 +530,16 @@ async function finalizarVenta(){
 
         // 3. Éxito total: Limpieza de interfaz y carrito
         showToast("✔ Venta realizada con éxito", "success");
+        const carritoTicket = [...cart];
+
+imprimirTicket(
+    ventaId,
+    total,
+    cashInput,
+    cambio,
+    carritoTicket,
+    descuentoPct
+);
         cart = [];
         descuentoPct = 0;
         currentSearchProducts = [];
@@ -545,6 +555,96 @@ async function finalizarVenta(){
         btnFin.textContent = "✔ Finalizar Venta";
         btnFin.disabled = false;
     }
+}
+
+    function imprimirTicket(ventaId, total, efectivo, cambio, carrito, descuento = 0){
+
+    const fecha = new Date().toLocaleString("es-MX");
+
+    let productosHTML = "";
+
+    carrito.forEach(item => {
+        productosHTML += `
+            <tr>
+                <td>${item.producto}</td>
+                <td style="text-align:center">${item.cantidad}</td>
+                <td style="text-align:right">$${item.subtotal.toFixed(2)}</td>
+            </tr>
+        `;
+    });
+
+    const ticket = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Ticket</title>
+        <style>
+            body{
+                font-family: monospace;
+                width:80mm;
+                margin:0;
+                padding:10px;
+                font-size:12px;
+            }
+            h2,h3,p{
+                text-align:center;
+                margin:2px 0;
+            }
+            table{
+                width:100%;
+                border-collapse:collapse;
+            }
+            td{
+                padding:2px 0;
+            }
+            hr{
+                border:none;
+                border-top:1px dashed #000;
+                margin:6px 0;
+            }
+            .right{text-align:right;}
+        </style>
+    </head>
+    <body>
+
+        <h2>REFA ANGELES</h2>
+        <p>Ticket de Venta</p>
+        <hr>
+
+        <p>Folio: ${ventaId}</p>
+        <p>${fecha}</p>
+
+        <hr>
+
+        <table>
+            ${productosHTML}
+        </table>
+
+        <hr>
+
+        <p>Descuento: ${descuento}%</p>
+        <p>Total: $${total.toFixed(2)}</p>
+        <p>Efectivo: $${efectivo.toFixed(2)}</p>
+        <p>Cambio: $${cambio.toFixed(2)}</p>
+
+        <hr>
+
+        <h3>¡Gracias por su compra!</h3>
+
+    </body>
+    </html>
+    `;
+
+    const ventana = window.open("", "_blank");
+
+    ventana.document.open();
+    ventana.document.write(ticket);
+    ventana.document.close();
+
+    ventana.onload = () => {
+        ventana.print();
+        ventana.onafterprint = () => ventana.close();
+    };
 }
 
 function regresarPanel(){
