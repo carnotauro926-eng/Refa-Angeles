@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Refa Angeles – Vender</title>
+    <title>Refa Angeles</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
     *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
@@ -450,7 +450,6 @@ function aplicarDescuento(){
     calcularTotales();
     showToast(d > 0 ? `Descuento del ${d}% aplicado` : "Descuento eliminado");
 }
-
 async function finalizarVenta(){
     if(cart.length === 0){ showToast("El carrito está vacío", "error"); return; }
 
@@ -469,8 +468,9 @@ async function finalizarVenta(){
     btnFin.textContent = "Procesando...";
     btnFin.disabled = true;
 
-    try{
-        const { data: venta, error: errVenta } = await client
+    try {
+        // 1. Insertar la venta principal
+        const { data: dataVenta, error: errVenta } = await client
             .from('ventas')
             .insert([{
                 usuario: usuarioActivo.usuario,
@@ -478,28 +478,57 @@ async function finalizarVenta(){
                 efectivo: cashInput,
                 change: parseFloat(cambio.toFixed(2))
             }])
-            .select()
-            .single();
+            .select(); // Quitamos .single() temporalmente para asegurar compatibilidad de lectura
 
-        if(errVenta) throw errVenta;
+        if (errVenta) throw errVenta;
+        if (!dataVenta || dataVenta.length === 0) throw new Error("No se pudo registrar la venta principal.");
 
-        for(let item of cart){
-            const { error: errDet } = await client.from('detalle_ventas').insert([{
-                venta_id: venta.id,
-                codigo_producto: item.codigo_producto,
-                producto: item.producto,
-                cantidad: item.cantidad,
-                precio: item.precio,
-                subtotal: item.subtotal
-            }]);
-            if(errDet) throw errDet;
+        // Aseguramos obtener el ID ya sea que regrese objeto o array
+        const ventaRegistrada = Array.isArray(dataVenta) ? dataVenta[0] : dataVenta;
+        const ventaId = ventaRegistrada.id;
 
-            const nuevoStock = item.originalStock - item.cantidad;
-            await client.from('inventario')
+        // 2. Procesar los detalles de venta y actualizar stock de forma estructurada
+        for (let item of cart) {
+            // Insertar el detalle de este producto
+            const { error: errDet } = await client
+                .from('detalle_ventas')
+                .insert([{
+                    venta_id: ventaId,
+                    codigo_producto: item.codigo_producto,
+                    producto: item.producto,
+                    cantidad: item.cantidad,
+                    precio: item.precio,
+                    subtotal: item.subtotal
+                }]);
+            
+            if (errDet) throw new Error(`Error en detalle del producto ${item.codigo_producto}: ${errDet.message}`);
+
+            // Traer el stock más fresco directamente de la BD antes de restar (Previene errores de concurrencia)
+            const { data: prodBd, error: errStockRead } = await client
+                .from('inventario')
+                .select('stock')
+                .eq('codigo_producto', item.codigo_producto)
+                .single();
+
+            if (errStockRead) throw new Error(`No se pudo leer el stock actual de ${item.codigo_producto}`);
+
+            const stockActualBD = Number(prodBd.stock);
+            const nuevoStock = stockActualBD - item.cantidad;
+
+            if (nuevoStock < 0) {
+                throw new Error(`El producto ${item.producto} se quedó sin stock suficiente en la base de datos durante la transacción.`);
+            }
+
+            // Actualizar el stock real en la base de datos
+            const { error: errUpdateStock } = await client
+                .from('inventario')
                 .update({ stock: nuevoStock })
                 .eq('codigo_producto', item.codigo_producto);
+
+            if (errUpdateStock) throw new Error(`No se pudo actualizar el stock de ${item.codigo_producto}`);
         }
 
+        // 3. Éxito total: Limpieza de interfaz y carrito
         showToast("✔ Venta realizada con éxito", "success");
         cart = [];
         descuentoPct = 0;
@@ -507,15 +536,15 @@ async function finalizarVenta(){
         document.getElementById("input-cash").value = "";
         document.getElementById("lbl-change").textContent = "$0.00";
         renderCart();
-        document.getElementById("results-tbody").innerHTML = `<tr><td colspan="7" style="padding:24px;text-align:center;color:#94a3b8;font-style:italic;">Realiza una búsqueda...</td></tr>`;
+        document.getElementById("results-tbody").innerHTML = `<tr><td colspan="7" style="padding:24px;text-align:center;color:#94a3b8;font-style:italic;">Realiza una búsqueda para mostrar productos...</td></tr>`;
 
-    }catch(err){
-        console.error(err);
+    } catch (err) {
+        console.error("Error completo en la transacción: ", err);
         showToast("Error al guardar venta: " + err.message, "error");
+    } finally {
+        btnFin.textContent = "✔ Finalizar Venta";
+        btnFin.disabled = false;
     }
-
-    btnFin.textContent = "✔ Finalizar Venta";
-    btnFin.disabled = false;
 }
 
 function regresarPanel(){
