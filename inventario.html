@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<title>Refa Angeles</title>
+
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"Segoe UI",sans-serif;
+}
+
+body{
+    background:#eef3f9;
+    display:flex;
+    min-height:100vh;
+}
+
+/* SIDEBAR */
+aside{
+    width:260px;
+    background:linear-gradient(180deg,#1e5eff,#194ddb);
+    color:white;
+    display:flex;
+    flex-direction:column;
+    padding:30px;
+}
+
+.logo{
+    text-align:center;
+    margin-bottom:50px;
+}
+
+.logo img{
+    width:85px;
+    margin-bottom:15px;
+}
+
+.logo h2{
+    font-size:24px;
+}
+
+.menu-item{
+    padding:16px;
+    border-radius:12px;
+    cursor:pointer;
+    transition:.3s;
+    font-weight:500;
+}
+
+.menu-item:hover{
+    background:rgba(255,255,255,.15);
+}
+
+.salir{
+    margin-top:auto;
+}
+
+/* CONTENIDO */
+main{
+    flex:1;
+    padding:40px;
+}
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+}
+
+.title{
+    font-size:28px;
+    color:#1d3557;
+    font-weight:600;
+}
+
+button{
+    background:#1e5eff;
+    color:white;
+    border:none;
+    padding:10px 18px;
+    border-radius:10px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+button:hover{
+    background:#194ddb;
+}
+
+/* PANEL */
+.panel{
+    background:white;
+    border-radius:18px;
+    padding:25px;
+    box-shadow:0 10px 25px rgba(0,0,0,.05);
+}
+
+/* CONTROLES */
+.controls{
+    display:flex;
+    gap:12px;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+}
+
+.search{
+    flex:1;
+    min-width:220px;
+    padding:12px;
+    border-radius:12px;
+    border:2px solid #e6eeff;
+    background:#f9fbff;
+    outline:none;
+}
+
+.search:focus{
+    border-color:#1e5eff;
+    background:white;
+}
+
+select{
+    padding:12px;
+    border-radius:12px;
+    border:2px solid #e6eeff;
+    background:#f9fbff;
+}
+
+/* TABLA */
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+thead{
+    background:#1e5eff;
+    color:white;
+}
+
+th,td{
+    padding:14px;
+    border-bottom:1px solid #eef2ff;
+}
+
+tbody tr:hover{
+    background:#f3f7ff;
+}
+
+/* STOCK */
+.badge{
+    background:#e8f0ff;
+    color:#1e5eff;
+    padding:5px 10px;
+    border-radius:999px;
+    font-weight:600;
+}
+
+/* ALERTA */
+.warning{
+    display:inline-block;
+    margin-top:5px;
+    padding:4px 10px;
+    background:#ff3b3b;
+    color:white;
+    font-size:0.75rem;
+    border-radius:999px;
+    animation:pulse 1.5s infinite;
+}
+
+@keyframes pulse{
+    0%{opacity:1;}
+    50%{opacity:0.5;}
+    100%{opacity:1;}
+}
+
+/* STOCK BAJO */
+.low-stock{
+    background:#ffecec !important;
+}
+
+/* ACCIONES */
+.actions{
+    display:flex;
+    gap:6px;
+}
+
+.actions button{
+    padding:6px 10px;
+    font-size:0.8rem;
+    border-radius:8px;
+    border:none;
+    cursor:pointer;
+}
+
+.edit{
+    background:#1e5eff;
+    color:white;
+}
+
+.delete{
+    background:#ff3b3b;
+    color:white;
+}
+
+.modal{
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,.5);
+    justify-content:center;
+    align-items:center;
+    z-index:999;
+}
+
+.modal-box{
+    background:white;
+    padding:25px;
+    border-radius:16px;
+    text-align:center;
+    width:320px;
+    box-shadow:0 10px 30px rgba(0,0,0,.2);
+    animation:pop .2s ease;
+}
+
+@keyframes pop{
+    from{transform:scale(.8); opacity:0;}
+    to{transform:scale(1); opacity:1;}
+}
+
+.modal-actions{
+    display:flex;
+    justify-content:space-between;
+    margin-top:20px;
+    gap:10px;
+}
+
+.modal-actions button{
+    flex:1;
+    padding:10px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+.danger{
+    background:#ff3b3b;
+    color:white;
+}
+
+#cancelDelete{
+    background:#e6eeff;
+}
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<aside>
+
+    <div class="logo">
+        <img src="3.png" alt="Logo">
+        <h2>Refa Angeles</h2>
+    </div>
+
+    <!-- NUEVO BOTÓN -->
+    <div class="menu-item" onclick="location.href='agregarproducto.html'">
+    ➕ Agregar producto
+</div>
+
+    <div class="menu-item salir" onclick="cerrarSesion()">
+        🚪 Cerrar sesión
+    </div>
+
+</aside>
+
+<!-- CONTENIDO -->
+<main>
+
+<div class="topbar">
+    <div class="title">Inventario</div>
+    <button id="backBtn">Volver</button>
+</div>
+
+<div class="panel">
+
+    <div class="controls">
+        <input class="search" id="search" placeholder="Buscar producto...">
+
+        <select id="categoryFilter">
+            <option value="">Todas las categorías</option>
+            <option value="Químicos">Químicos</option>
+            <option value="Tornillería">Tornillería</option>
+            <option value="Hules">Hules</option>
+            <option value="Refacciones">Refacciones</option>
+            <option value="Partes Eléctricas">Partes Eléctricas</option>
+        </select>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Código</th>
+            <th>Pieza</th>
+            <th>Marca</th>
+            <th>Modelo</th>
+            <th>Proveedor</th>
+            <th>Stock</th>
+            <th>Precio</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+
+<tbody id="inventory-body">
+</tbody>
+    </table>
+
+</div>
+</main>
+
+<script>
+
+/* BUSCADOR + FILTRO */
+const search = document.getElementById("search");
+const category = document.getElementById("categoryFilter");
+
+search.addEventListener("input", filterTable);
+category.addEventListener("change", filterTable);
+
+function filterTable(){
+    const s = search.value.toLowerCase();
+    const c = category.value.toLowerCase();
+
+    document.querySelectorAll("#inventory-body tr").forEach(row=>{
+        const text = row.innerText.toLowerCase();
+        const cat = (row.getAttribute("data-category")||"").toLowerCase();
+
+        const okSearch = text.includes(s);
+        const okCat = c === "" || cat === c;
+
+        row.style.display = (okSearch && okCat) ? "" : "none";
+    });
+}
+
+/* STOCK BAJO */
+function checkStock(){
+    document.querySelectorAll("#inventory-body tr").forEach(row=>{
+        const stockEl = row.querySelector(".stock");
+        const stock = parseInt(stockEl.dataset.stock);
+
+        const warning = row.querySelector(".warning");
+
+        if(stock <= 3){
+            row.classList.add("low-stock");
+            warning.style.display="inline-block";
+        } else {
+            row.classList.remove("low-stock");
+            warning.style.display="none";
+        }
+    });
+}
+
+checkStock();
+
+/* VOLVER */
+document.getElementById("backBtn").addEventListener("click",()=>{
+    const perfil = localStorage.getItem("perfil");
+
+    if(perfil==="admin"){
+        location.href="paneladmin.html";
+    }else{
+        location.href="panelgenerico.html";
+    }
+});
+
+let rowToDelete = null;
+
+/* abrir modal */
+function deleteRow(btn){
+    rowToDelete = btn.closest("tr");
+    document.getElementById("modalDelete").style.display = "flex";
+}
+
+/* cancelar */
+document.getElementById("cancelDelete").addEventListener("click", ()=>{
+    document.getElementById("modalDelete").style.display = "none";
+    rowToDelete = null;
+});
+
+/* confirmar eliminación */
+document.getElementById("confirmDelete").addEventListener("click", ()=>{
+    if(rowToDelete){
+        rowToDelete.remove();
+        rowToDelete = null;
+    }
+    document.getElementById("modalDelete").style.display = "none";
+});
+
+/* cerrar si haces click fuera */
+document.getElementById("modalDelete").addEventListener("click", (e)=>{
+    if(e.target.id === "modalDelete"){
+        document.getElementById("modalDelete").style.display = "none";
+        rowToDelete = null;
+    }
+});
+
+/* CERRAR SESIÓN */
+function cerrarSesion(){
+    localStorage.clear();
+    location.href="index.html";
+}
+
+</script>
+
+<div id="modalDelete" class="modal">
+    <div class="modal-box">
+        <h3>¿Eliminar producto?</h3>
+
+        <div class="modal-actions">
+            <button id="cancelDelete">Cancelar</button>
+            <button id="confirmDelete" class="danger">Eliminar</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
