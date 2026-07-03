@@ -276,9 +276,8 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase.js"></script>
+<script src="supabase.js"></script>
+    
 <script>
 
 // --- Sesión ---
@@ -446,7 +445,7 @@ async function buscarProductos(){
 
         // El filtro .or() de PostgREST no acepta saltos de línea ni espacios
         // extra entre condiciones: deben ir en una sola línea separadas por coma.
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from("inventario")
             .select("*")
             .or(`codigo_producto.ilike.%${query}%,marca.ilike.%${query}%,nombre_pieza.ilike.%${query}%`);
@@ -497,8 +496,8 @@ async function finalizarVenta(){
 
         // Registrar venta
         const { data: venta, error: ventaError } =
-            await supabase
-            .from("ventas")
+            await supabaseClient
+    .from("ventas")
             .insert({
                 usuario: usuarioActivo.usuario,
                 total: total,
@@ -522,8 +521,8 @@ async function finalizarVenta(){
 
         for(const item of cart){
 
-            const { error: detalleError } = await supabase
-                .from("detalle_ventas")
+            const { error: detalleError } = await supabaseClient
+              .from("detalle_ventas")
                 .insert({
                     venta_id: venta.id,
                     codigo_producto: item.codigo_producto,
@@ -538,7 +537,7 @@ async function finalizarVenta(){
                 huboErroresParciales = true;
             }
 
-            const { data: productoActual, error: stockError } = await supabase
+            const { data: productoActual, error: stockError } = await supabaseClient
                 .from("inventario")
                 .select("stock")
                 .eq("codigo_producto", item.codigo_producto)
@@ -555,7 +554,7 @@ async function finalizarVenta(){
                 Number(productoActual.stock) - item.cantidad
             );
 
-            const { error: updateError } = await supabase
+            const { error: updateError } = await supabaseClient
                 .from("inventario")
                 .update({
                     stock:nuevoStock
