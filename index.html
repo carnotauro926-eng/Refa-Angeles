@@ -304,9 +304,10 @@ body{
     .single();
 
 if (error) {
-    console.error("Error al iniciar sesión:", error);
+    alert(JSON.stringify(error, null, 2));
+    console.error(error);
 } else {
-    console.log("Inicio de sesión correcto:", data);
+    alert("Usuario registrado correctamente");
 }
 
 
