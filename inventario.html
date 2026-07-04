@@ -421,6 +421,57 @@ function cerrarSesion(){
     location.href="index.html";
 }
 
+    async function cargarInventario() {
+
+    const { data, error } = await supabaseClient
+        .from("inventario")
+        .select("*")
+        .order("id", { ascending: false });
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    const tbody = document.getElementById("inventory-body");
+    tbody.innerHTML = "";
+
+    data.forEach(producto => {
+
+        tbody.innerHTML += `
+            <tr data-category="${producto.categoria}">
+                <td>${producto.codigo_producto}</td>
+                <td>${producto.nombre_pieza}</td>
+                <td>${producto.marca}</td>
+                <td>${producto.modelo_auto}</td>
+                <td>${producto.proveedor}</td>
+
+                <td>
+                    <span class="badge stock" data-stock="${producto.stock}">
+                        ${producto.stock}
+                    </span>
+                    <span class="warning" style="display:none;">
+                        Stock bajo
+                    </span>
+                </td>
+
+                <td>$${producto.precio}</td>
+
+                <td class="actions">
+                    <button class="delete" onclick="deleteRow(this)">
+                        Eliminar
+                    </button>
+                </td>
+            </tr>
+        `;
+
+    });
+
+    checkStock();
+}
+
+cargarInventario();
+    
 </script>
 
 <div id="modalDelete" class="modal">
