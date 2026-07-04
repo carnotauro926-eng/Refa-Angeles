@@ -297,12 +297,15 @@ body{
 
     if (isLogin) {
 
-        const { data, error } = await supabaseClient
+        const { data, error } = await supabase
     .from("usuarios")
     .select("*")
     .eq("usuario", payload.user)
     .eq("contrasena", payload.pass)
     .single();
+
+console.log("Data:", data);
+console.log("Error:", error);
 
 if (error) {
     alert(JSON.stringify(error, null, 2));
