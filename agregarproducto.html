@@ -236,6 +236,16 @@ document.getElementById('product-form').addEventListener('submit', async (e) => 
     e.preventDefault();
  console.log("Entró al submit");
 
+    console.log(document.getElementById("codigo"));
+    console.log(document.getElementById("nombre"));
+    console.log(document.getElementById("marca"));
+    console.log(document.getElementById("proveedor"));
+    console.log(document.getElementById("modelo_auto"));
+    console.log(document.getElementById("anio_auto"));
+    console.log(document.getElementById("precio"));
+    console.log(document.getElementById("stock"));
+    console.log(document.getElementById("categoria"));
+
     const producto = {
         codigo_producto: document.getElementById("codigo").value,
         nombre_pieza: document.getElementById("nombre").value,
