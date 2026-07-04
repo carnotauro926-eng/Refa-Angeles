@@ -261,6 +261,21 @@ if (error) {
 
     document.getElementById("modalSuccess").style.display = "flex";
 });
+
+    document.getElementById("addAnother").addEventListener("click", () => {
+    document.getElementById("product-form").reset();
+    document.getElementById("modalSuccess").style.display = "none";
+});
+
+document.getElementById("goPanel").addEventListener("click", () => {
+    const perfil = localStorage.getItem("perfil");
+
+    if (perfil === "admin") {
+        window.location.href = "paneladmin.html";
+    } else {
+        window.location.href = "panelgenerico.html";
+    }
+});
 </script>
 
 <div id="modalSuccess" class="modal">
