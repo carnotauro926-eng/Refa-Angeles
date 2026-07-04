@@ -229,72 +229,68 @@ button:hover{
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase.js"></script>    
-    
-<script>
-document.getElementById('product-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
- console.log("Entró al submit");
+<script src="supabase.js"></script>
 
-    const producto = {
-        codigo_producto: document.getElementById("codigo").value,
-        nombre_pieza: document.getElementById("nombre").value,
-        marca: document.getElementById("marca").value,
-        proveedor: document.getElementById("proveedor").value,
-        modelo_auto: document.getElementById("modelo_auto").value,
-        anio_auto: parseInt(document.getElementById("anio_auto").value),
-        precio: parseFloat(document.getElementById("precio").value),
-        stock: parseInt(document.getElementById("stock").value),
-        categoria: document.getElementById("categoria").value
-    };
-
-    console.log(producto);
-
-    const { data, error } = await supabaseClient
-        .from("inventario")
-        .insert([producto])
-        .select();
-if (error) {
-    console.error(error);
-    return;
-}
-
-    document.getElementById("modalSuccess").style.display = "flex";
-});
-
-    document.getElementById("addAnother").addEventListener("click", () => {
-    console.log("Click en Agregar otro");
-});
-    document.getElementById("product-form").reset();
-    document.getElementById("modalSuccess").style.display = "none";
-});
-
-document.getElementById("goPanel").addEventListener("click", () => {
-    console.log("Click en Volver al panel");
-});
-    const perfil = localStorage.getItem("perfil");
-
-    if (perfil === "admin") {
-        window.location.href = "paneladmin.html";
-    } else {
-        window.location.href = "panelgenerico.html";
-    }
-});
-</script>
-
+<!-- Modal -->
 <div id="modalSuccess" class="modal">
     <div class="modal-box">
-
         <h3>✔ Producto guardado</h3>
         <p>¿Qué deseas hacer ahora?</p>
 
         <div class="modal-actions">
-           <button type="button" id="addAnother">➕ Agregar otro</button>
-           <button type="button" id="goPanel" class="primary">🏠 Volver al panel</button>
+            <button type="button" id="addAnother">➕ Agregar otro</button>
+            <button type="button" id="goPanel" class="primary">🏠 Volver al panel</button>
         </div>
-
     </div>
 </div>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+
+    document.getElementById("product-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const producto = {
+            codigo_producto: document.getElementById("codigo").value,
+            nombre_pieza: document.getElementById("nombre").value,
+            marca: document.getElementById("marca").value,
+            proveedor: document.getElementById("proveedor").value,
+            modelo_auto: document.getElementById("modelo_auto").value,
+            anio_auto: parseInt(document.getElementById("anio_auto").value),
+            precio: parseFloat(document.getElementById("precio").value),
+            stock: parseInt(document.getElementById("stock").value),
+            categoria: document.getElementById("categoria").value
+        };
+
+        const { error } = await supabaseClient
+            .from("inventario")
+            .insert([producto]);
+
+        if (error) {
+            console.error(error);
+            return;
+        }
+
+        document.getElementById("modalSuccess").style.display = "flex";
+    });
+
+    document.getElementById("addAnother").addEventListener("click", () => {
+        document.getElementById("product-form").reset();
+        document.getElementById("modalSuccess").style.display = "none";
+    });
+
+    document.getElementById("goPanel").addEventListener("click", () => {
+        const perfil = localStorage.getItem("perfil");
+
+        if (perfil === "admin") {
+            window.location.href = "paneladmin.html";
+        } else {
+            window.location.href = "panelgenerico.html";
+        }
+    });
+
+});
+</script>
 
 </body>
 </html>
