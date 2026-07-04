@@ -236,21 +236,27 @@ document.getElementById('product-form').addEventListener('submit', async (e) => 
     e.preventDefault();
 
     const producto = {
-        codigo: document.getElementById('codigo').value,
-        nombre_pieza: document.getElementById('nombre').value,
-        marca: document.getElementById('marca').value,
-        proveedor: document.getElementById('proveedor').value,
-        modelo_auto: document.getElementById('modelo_auto').value,
-        anio_auto: parseInt(document.getElementById('anio_auto').value),
-        precio: parseFloat(document.getElementById('precio').value),
-        stock: parseInt(document.getElementById('stock').value),
-        categoria: document.getElementById('categoria').value
-    };
+    codigo_producto: document.getElementById("codigo_producto").value,
+    nombre_pieza: document.getElementById("nombre").value,
+    marca: document.getElementById("marca").value,
+    proveedor: document.getElementById("proveedor").value,
+    modelo_auto: document.getElementById("modelo_auto").value,
+    anio_auto: parseInt(document.getElementById("anio_auto").value),
+    precio: parseFloat(document.getElementById("precio").value),
+    stock: parseInt(document.getElementById("stock").value),
+    categoria: document.getElementById("categoria").value
+};
 
-    console.log("Producto guardado:", producto);
+const { error } = await supabaseClient
+    .from("inventario")
+    .insert([producto]);
 
-    // abrir modal
-    document.getElementById("modalSuccess").style.display = "flex";
+if (error) {
+    console.error(error);
+    return;
+}
+
+document.getElementById("modalSuccess").style.display = "flex";
 });
 document.getElementById("addAnother").addEventListener("click", () => {
     document.getElementById("product-form").reset();
