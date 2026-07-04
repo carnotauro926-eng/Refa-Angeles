@@ -314,7 +314,7 @@ if (error) {
 
     } else {
 
-        const { error } = await supabaseClient
+        cconst { data, error } = await supabaseClient
     .from("usuarios")
     .insert([
         {
@@ -322,13 +322,11 @@ if (error) {
             contraseña: payload.pass,
             perfil: payload.role
         }
-    ]);
+    ])
+    .select();
 
-if (error) {
-    console.error("Error al registrar:", error);
-} else {
-    console.log("Usuario registrado correctamente.");
-}
+console.log("Data:", data);
+console.log("Error:", error);
 
     }
 
