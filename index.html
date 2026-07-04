@@ -301,7 +301,7 @@ body{
     .from("usuarios")
     .select("*")
     .eq("usuario", payload.user)
-    .eq("contraseña", payload.pass)
+    .eq("contrasena", payload.pass)
     .single();
 
 if (error) {
