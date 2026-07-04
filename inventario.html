@@ -423,10 +423,12 @@ function cerrarSesion(){
 
     async function cargarInventario() {
 
-    const { data, error } = await supabaseClient
-        .from("inventario")
-        .select("*")
-        .order("id", { ascending: false });
+   const { data, error } = await supabaseClient
+    .from("inventario")
+    .select("*");
+
+console.log("DATA:", data);
+console.log("ERROR:", error);
 
     if (error) {
         console.error(error);
