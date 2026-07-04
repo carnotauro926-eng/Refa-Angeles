@@ -314,7 +314,7 @@ if (error) {
 
     } else {
 
-        cconst { data, error } = await supabaseClient
+        const { data, error } = await supabaseClient
     .from("usuarios")
     .insert([
         {
