@@ -236,16 +236,6 @@ document.getElementById('product-form').addEventListener('submit', async (e) => 
     e.preventDefault();
  console.log("Entró al submit");
 
-    console.log(document.getElementById("codigo"));
-    console.log(document.getElementById("nombre"));
-    console.log(document.getElementById("marca"));
-    console.log(document.getElementById("proveedor"));
-    console.log(document.getElementById("modelo_auto"));
-    console.log(document.getElementById("anio_auto"));
-    console.log(document.getElementById("precio"));
-    console.log(document.getElementById("stock"));
-    console.log(document.getElementById("categoria"));
-
     const producto = {
         codigo_producto: document.getElementById("codigo").value,
         nombre_pieza: document.getElementById("nombre").value,
@@ -264,11 +254,10 @@ document.getElementById('product-form').addEventListener('submit', async (e) => 
         .from("inventario")
         .insert([producto])
         .select();
-
-    console.log("DATA:", data);
-    console.log("ERROR:", error);
-
-    if (error) return;
+if (error) {
+    console.error(error);
+    return;
+}
 
     document.getElementById("modalSuccess").style.display = "flex";
 });
