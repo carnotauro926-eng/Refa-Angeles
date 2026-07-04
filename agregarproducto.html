@@ -234,43 +234,33 @@ button:hover{
 <script>
 document.getElementById('product-form').addEventListener('submit', async (e) => {
     e.preventDefault();
+ console.log("Entró al submit");
 
     const producto = {
-    codigo_producto: document.getElementById("codigo_producto").value,
-    nombre_pieza: document.getElementById("nombre").value,
-    marca: document.getElementById("marca").value,
-    proveedor: document.getElementById("proveedor").value,
-    modelo_auto: document.getElementById("modelo_auto").value,
-    anio_auto: parseInt(document.getElementById("anio_auto").value),
-    precio: parseFloat(document.getElementById("precio").value),
-    stock: parseInt(document.getElementById("stock").value),
-    categoria: document.getElementById("categoria").value
-};
+        codigo_producto: document.getElementById("codigo").value,
+        nombre_pieza: document.getElementById("nombre").value,
+        marca: document.getElementById("marca").value,
+        proveedor: document.getElementById("proveedor").value,
+        modelo_auto: document.getElementById("modelo_auto").value,
+        anio_auto: parseInt(document.getElementById("anio_auto").value),
+        precio: parseFloat(document.getElementById("precio").value),
+        stock: parseInt(document.getElementById("stock").value),
+        categoria: document.getElementById("categoria").value
+    };
 
-const { error } = await supabaseClient
-    .from("inventario")
-    .insert([producto]);
+    console.log(producto);
 
-if (error) {
-    console.error(error);
-    return;
-}
+    const { data, error } = await supabaseClient
+        .from("inventario")
+        .insert([producto])
+        .select();
 
-document.getElementById("modalSuccess").style.display = "flex";
-});
-document.getElementById("addAnother").addEventListener("click", () => {
-    document.getElementById("product-form").reset();
-    document.getElementById("modalSuccess").style.display = "none";
-});
+    console.log("DATA:", data);
+    console.log("ERROR:", error);
 
-document.getElementById("goPanel").addEventListener("click", () => {
-    const perfil = localStorage.getItem("perfil");
+    if (error) return;
 
-    if(perfil === "admin"){
-        window.location.href = "paneladmin.html";
-    } else {
-        window.location.href = "panelgenerico.html";
-    }
+    document.getElementById("modalSuccess").style.display = "flex";
 });
 </script>
 
