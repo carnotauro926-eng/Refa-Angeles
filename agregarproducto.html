@@ -263,11 +263,15 @@ if (error) {
 });
 
     document.getElementById("addAnother").addEventListener("click", () => {
+    console.log("Click en Agregar otro");
+});
     document.getElementById("product-form").reset();
     document.getElementById("modalSuccess").style.display = "none";
 });
 
 document.getElementById("goPanel").addEventListener("click", () => {
+    console.log("Click en Volver al panel");
+});
     const perfil = localStorage.getItem("perfil");
 
     if (perfil === "admin") {
