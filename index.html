@@ -283,59 +283,75 @@ body{
             roleSelect.setAttribute('required', 'required');
         });
 
-       document.getElementById('auth-form').addEventListener('submit', async (e) => {
+       document.getElementById("auth-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-           alert("Entró al submit");
 
-    const isLogin = tabLogin.classList.contains('active');
+    const isLogin = tabLogin.classList.contains("active");
 
     const payload = {
-        user: document.getElementById('user').value,
-        pass: document.getElementById('pass').value,
-        role: isLogin ? null : document.getElementById('role').value
+        user: document.getElementById("user").value.trim(),
+        pass: document.getElementById("pass").value,
+        role: isLogin ? null : document.getElementById("role").value
     };
 
     if (isLogin) {
 
         const { data, error } = await supabaseClient
-    .from("usuarios")
-    .select("*")
-    .eq("usuario", payload.user)
-    .eq("contrasena", payload.pass)
-    .single();
+            .from("usuarios")
+            .select("*")
+            .eq("usuario", payload.user)
+            .eq("contrasena", payload.pass)
+            .single();
 
-console.log("Data:", data);
-console.log("Error:", error);
+        if (error || !data) {
+            console.error(error);
+            return;
+        }
 
-if (error) {
-    alert(JSON.stringify(error, null, 2));
-    console.error(error);
-} else {
-    alert("Usuario registrado correctamente");
-}
+        localStorage.setItem("activeUser", JSON.stringify(data));
+        localStorage.setItem("perfil", data.perfil);
 
+        if (data.perfil === "admin") {
+            window.location.href = "paneladmin.html";
+        } else {
+            window.location.href = "panelgenerico.html";
+        }
 
     } else {
 
-        const { data, error } = await supabaseClient
-    .from("usuarios")
-    .insert([
-        {
-            usuario: payload.user,
-            contrasena: payload.pass,
-            perfil: payload.role
-        }
-    ])
-    .select();
+    // Verificar si el usuario ya existe
+    const { data: existe } = await supabaseClient
+        .from("usuarios")
+        .select("id")
+        .eq("usuario", payload.user)
+        .maybeSingle();
 
-console.log("Data:", data);
-console.log("Error:", error);
-
-        alert("Data: " + JSON.stringify(data));
-alert("Error: " + JSON.stringify(error));
-
+    if (existe) {
+        console.error("El usuario ya existe");
+        return;
     }
 
+    // Registrar usuario
+    const { error } = await supabaseClient
+        .from("usuarios")
+        .insert([
+            {
+                usuario: payload.user,
+                contrasena: payload.pass,
+                perfil: payload.role
+            }
+        ]);
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    // Volver al formulario de inicio de sesión
+    tabLogin.click();
+
+    document.getElementById("auth-form").reset();
+}
 });
     </script>
 </body>
