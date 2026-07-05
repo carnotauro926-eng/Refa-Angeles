@@ -265,7 +265,7 @@ tbody tr:hover{
         <h2>Refa Angeles</h2>
     </div>
 
-    <div class="menu-item" onclick="location.href='agregarproducto.html'">
+    <div class="menu-item" id="menuAgregarProducto" onclick="location.href='agregarproducto.html'">
         ➕ Agregar producto
     </div>
 
@@ -378,6 +378,11 @@ Eliminar
     const usuarioActivo = JSON.parse(localStorage.getItem("activeUser"));
     if(!usuarioActivo){
         window.location.replace("index.html");
+    }
+
+    // Solo los administradores pueden ver el acceso a "Agregar producto"
+    if(usuarioActivo && usuarioActivo.perfil !== "admin"){
+        document.getElementById("menuAgregarProducto").style.display = "none";
     }
 
     const tbody = document.getElementById("inventory-body");
@@ -612,6 +617,7 @@ function cerrarSesion(){
 
 }
 
+    
 </script>
 
 </body>
