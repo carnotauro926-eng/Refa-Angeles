@@ -374,6 +374,9 @@ function checkStock(){
 checkStock();
 
 /* VOLVER */
+console.log("cancelDelete:", document.getElementById("cancelDelete"));
+console.log("confirmDelete:", document.getElementById("confirmDelete"));
+console.log("modalDelete:", document.getElementById("modalDelete"));
 document.getElementById("backBtn").addEventListener("click",()=>{
     const perfil = localStorage.getItem("perfil");
 
