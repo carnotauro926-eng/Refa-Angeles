@@ -51,6 +51,32 @@ h2{
     font-size:24px;
 }
 
+.top-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:15px;
+    margin-bottom:25px;
+    flex-wrap:wrap;
+}
+
+.btn-volver{
+    background:#eef3f9;
+    color:#1d3557;
+    border:none;
+    padding:10px 18px;
+    border-radius:10px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.2s;
+    width:auto;
+    margin-top:0;
+}
+
+.btn-volver:hover{
+    background:#dde7f7;
+}
+
 /* GRID */
 .form-grid{
     display:grid;
@@ -162,7 +188,10 @@ button:hover{
         <img src="3.png" alt="Logo Refa Angeles">
     </div>
 
-    <h2>Agregar Nuevo Producto</h2>
+    <div class="top-row">
+        <h2 style="margin-bottom:0;text-align:left;">Agregar Nuevo Producto</h2>
+        <button type="button" id="btnVolver" class="btn-volver">← Volver</button>
+    </div>
 
     <form id="product-form">
 
@@ -252,7 +281,20 @@ button:hover{
         window.location.replace("index.html");
     }
 
+    // Solo los administradores pueden agregar productos
+    if(usuarioActivo && usuarioActivo.perfil !== "admin"){
+        window.location.replace("panelgenerico.html");
+    }
+
 window.addEventListener("DOMContentLoaded", () => {
+
+    function volverAlPanel(){
+        window.location.href = "paneladmin.html";
+    }
+
+    document.getElementById("btnVolver").addEventListener("click", () => {
+        volverAlPanel();
+    });
 
     document.getElementById("product-form").addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -287,15 +329,10 @@ window.addEventListener("DOMContentLoaded", () => {
     });
 
     document.getElementById("goPanel").addEventListener("click", () => {
-        const perfil = localStorage.getItem("perfil");
-
-        if (perfil === "admin") {
-            window.location.href = "paneladmin.html";
-        } else {
-            window.location.href = "panelgenerico.html";
-        }
+        volverAlPanel();
     });
 
+    
 });
 </script>
 
