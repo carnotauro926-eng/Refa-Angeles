@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Refa Angeles</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    background:#eef3f9;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    padding:20px;
+}
+
+/* CONTENEDOR */
+.form-container{
+    background:white;
+    padding:40px;
+    border-radius:18px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.08);
+    width:100%;
+    max-width:650px;
+}
+
+/* LOGO */
+.logo{
+    text-align:center;
+    margin-bottom:15px;
+}
+
+.logo img{
+    width:80px;
+    margin-bottom:10px;
+}
+
+/* TITULO */
+h2{
+    color:#1d3557;
+    margin-bottom:25px;
+    text-align:center;
+    font-size:24px;
+}
+
+/* GRID */
+.form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+.full-width{
+    grid-column:span 2;
+}
+
+label{
+    display:block;
+    font-size:0.9rem;
+    color:#555;
+    margin-bottom:5px;
+}
+
+input,select{
+    width:100%;
+    padding:12px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    font-size:1rem;
+    outline:none;
+}
+
+input:focus,select:focus{
+    border-color:#1e5eff;
+}
+
+/* BOTÓN */
+button{
+    width:100%;
+    padding:15px;
+    background:#1e5eff;
+    color:white;
+    border:none;
+    border-radius:10px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:20px;
+    transition:.3s;
+}
+
+button:hover{
+    background:#194ddb;
+}
+
+/* RESPONSIVE */
+@media (max-width:600px){
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+    .full-width{
+        grid-column:span 1;
+    }
+}
+
+.modal{
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,.5);
+    justify-content:center;
+    align-items:center;
+    z-index:999;
+}
+
+.modal-box{
+    background:white;
+    padding:25px;
+    border-radius:16px;
+    text-align:center;
+    width:320px;
+    box-shadow:0 10px 30px rgba(0,0,0,.2);
+}
+
+.modal-actions{
+    display:flex;
+    gap:10px;
+    margin-top:20px;
+}
+
+.modal-actions button{
+    flex:1;
+    padding:10px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+.primary{
+    background:#1e5eff;
+    color:white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="form-container">
+
+    <!-- LOGO -->
+    <div class="logo">
+        <img src="3.png" alt="Logo Refa Angeles">
+    </div>
+
+    <h2>Agregar Nuevo Producto</h2>
+
+    <form id="product-form">
+
+        <div class="form-grid">
+
+            <div>
+                <label>Código del producto</label>
+                <input type="text" id="codigo" required>
+            </div>
+
+            <div>
+                <label>Nombre de la pieza</label>
+                <input type="text" id="nombre" required>
+            </div>
+
+            <div>
+                <label>Marca</label>
+                <input type="text" id="marca" required>
+            </div>
+
+            <div>
+                <label>Proveedor</label>
+                <input type="text" id="proveedor" required>
+            </div>
+
+            <div>
+    <label>Modelo del auto</label>
+    <input type="text" id="modelo_auto" placeholder="Ej: Nissan Sentra" required>
+</div>
+
+<div>
+    <label>Año del auto</label>
+    <input type="number" id="anio_auto" placeholder="Ej: 2022" required>
+</div>
+            <div>
+                <label>Precio ($)</label>
+                <input type="number" id="precio" step="0.01" required>
+            </div>
+
+            <div>
+                <label>Stock inicial</label>
+                <input type="number" id="stock" required>
+            </div>
+
+            <!-- CATEGORÍA ACTUALIZADA -->
+            <div class="full-width">
+                <label>Categoría</label>
+                <select id="categoria" required>
+
+                    <option value="Químicos">Químicos</option>
+                    <option value="Tornillería">Tornillería</option>
+                    <option value="Hules">Hules</option>
+                    <option value="Refacciones">Refacciones</option>
+                    <option value="Partes Eléctricas">Partes Eléctricas</option>
+
+                </select>
+            </div>
+
+        </div>
+
+        <button type="submit">Guardar Producto en Inventario</button>
+
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<!-- Modal -->
+<div id="modalSuccess" class="modal">
+    <div class="modal-box">
+        <h3>✔ Producto guardado</h3>
+        <p>¿Qué deseas hacer ahora?</p>
+
+        <div class="modal-actions">
+            <button type="button" id="addAnother">➕ Agregar otro</button>
+            <button type="button" id="goPanel" class="primary">🏠 Volver al panel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    // --- Verificación de sesión ---
+    const usuarioActivo = JSON.parse(localStorage.getItem("activeUser"));
+    if(!usuarioActivo){
+        window.location.replace("index.html");
+    }
+
+window.addEventListener("DOMContentLoaded", () => {
+
+    document.getElementById("product-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const producto = {
+            codigo_producto: document.getElementById("codigo").value,
+            nombre_pieza: document.getElementById("nombre").value,
+            marca: document.getElementById("marca").value,
+            proveedor: document.getElementById("proveedor").value,
+            modelo_auto: document.getElementById("modelo_auto").value,
+            anio_auto: parseInt(document.getElementById("anio_auto").value),
+            precio: parseFloat(document.getElementById("precio").value),
+            stock: parseInt(document.getElementById("stock").value),
+            categoria: document.getElementById("categoria").value
+        };
+
+        const { error } = await supabaseClient
+            .from("inventario")
+            .insert([producto]);
+
+        if (error) {
+            console.error(error);
+            return;
+        }
+
+        document.getElementById("modalSuccess").style.display = "flex";
+    });
+
+    document.getElementById("addAnother").addEventListener("click", () => {
+        document.getElementById("product-form").reset();
+        document.getElementById("modalSuccess").style.display = "none";
+    });
+
+    document.getElementById("goPanel").addEventListener("click", () => {
+        const perfil = localStorage.getItem("perfil");
+
+        if (perfil === "admin") {
+            window.location.href = "paneladmin.html";
+        } else {
+            window.location.href = "panelgenerico.html";
+        }
+    });
+
+});
+</script>
+
+</body>
+</html>

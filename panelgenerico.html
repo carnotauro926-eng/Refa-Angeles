@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+    <script>
+        // --- Verificación de sesión ---
+        const usuarioActivo = JSON.parse(localStorage.getItem("activeUser"));
+        if(!usuarioActivo){
+            window.location.replace("index.html");
+        }
+
+        function cerrarSesion(){
+            localStorage.clear();
+            window.location.href = "index.html";
+        }
+    </script>
+
+    <title>Refa Angeles</title>
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:"Segoe UI",sans-serif;
+        }
+
+        body{
+            background:#eef3f9;
+            display:flex;
+            min-height:100vh;
+        }
+
+        /* Sidebar */
+
+        aside{
+            width:260px;
+            background:linear-gradient(180deg,#1e5eff,#194ddb);
+            color:white;
+            display:flex;
+            flex-direction:column;
+            padding:30px;
+            box-shadow:5px 0 20px rgba(0,0,0,.08);
+        }
+
+        .logo{
+            text-align:center;
+            margin-bottom:50px;
+        }
+
+        .logo img{
+            width:90px;
+            margin-bottom:15px;
+        }
+
+        .logo h2{
+            font-size:26px;
+        }
+
+        .menu-item{
+            padding:16px;
+            border-radius:12px;
+            cursor:pointer;
+            transition:.3s;
+            font-weight:500;
+        }
+
+        .menu-item:hover{
+            background:rgba(255,255,255,.15);
+        }
+
+        .salir{
+            margin-top:auto;
+        }
+
+        /* Contenido */
+
+        main{
+            flex:1;
+            padding:50px;
+        }
+
+        .hero{
+
+            background:white;
+
+            border-radius:20px;
+
+            padding:45px;
+
+            box-shadow:0 10px 25px rgba(0,0,0,.05);
+
+        }
+
+        .hero h1{
+
+            color:#1d3557;
+
+            font-size:36px;
+
+            margin-bottom:10px;
+
+        }
+
+        .hero p{
+
+            color:#777;
+
+            margin-bottom:40px;
+
+        }
+
+        .grid{
+
+            display:grid;
+
+            grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+
+            gap:25px;
+
+        }
+
+        .card{
+
+            background:white;
+
+            border:2px solid #eaf1ff;
+
+            border-radius:20px;
+
+            padding:35px;
+
+            text-align:center;
+
+            cursor:pointer;
+
+            transition:.3s;
+
+            box-shadow:0 6px 18px rgba(0,0,0,.05);
+
+        }
+
+        .card:hover{
+
+            transform:translateY(-8px);
+
+            border-color:#1e5eff;
+
+            box-shadow:0 12px 30px rgba(30,94,255,.18);
+
+        }
+
+        .icon{
+
+            font-size:60px;
+
+            margin-bottom:20px;
+
+        }
+
+        .card h3{
+
+            color:#1e5eff;
+
+            margin-bottom:10px;
+
+        }
+
+        .card p{
+
+            color:#666;
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <aside>
+
+        <div class="logo">
+
+            <img src="3.png" alt="Logo">
+
+            <h2>Refa Angeles</h2>
+
+        </div>
+
+        <div class="menu-item salir" onclick="cerrarSesion()">
+
+            🚪 Cerrar sesión
+
+        </div>
+
+    </aside>
+
+    <main>
+
+        <div class="hero">
+
+            <h1>Bienvenido</h1>
+
+            
+
+            <div class="grid">
+
+                <div class="card"
+                     onclick="window.location.href='inventario.html'">
+
+                    <div class="icon">📦</div>
+
+                    <h3>Inventario</h3>
+
+                    
+
+                </div>
+
+                <div class="card"
+                     onclick="window.location.href='venta.html'">
+
+                    <div class="icon">🛒</div>
+
+                    <h3>Vender Productos</h3>
+
+                    
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>
