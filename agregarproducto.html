@@ -176,6 +176,37 @@ button:hover{
     background:#1e5eff;
     color:white;
 }
+
+.compatibilidad{
+
+    display:grid;
+    grid-template-columns:2fr 1fr 1fr auto;
+    gap:10px;
+    margin-bottom:12px;
+    align-items:center;
+
+}
+
+.compatibilidad button{
+
+    width:45px;
+    margin:0;
+    background:#d9534f;
+
+}
+
+.compatibilidad button:hover{
+
+    background:#c9302c;
+
+}
+
+#agregarCompatibilidad{
+
+    width:auto;
+    padding:10px 18px;
+
+}
 </style>
 </head>
 
@@ -217,14 +248,48 @@ button:hover{
                 <input type="text" id="proveedor" required>
             </div>
 
-            <div>
-    <label>Modelo del auto</label>
-    <input type="text" id="modelo_auto" placeholder="Ej: Nissan Sentra" required>
-</div>
+           <div class="full-width">
 
-<div>
-    <label>Año del auto</label>
-    <input type="number" id="anio_auto" placeholder="Ej: 2022" required>
+    <label>Compatibilidad con vehículos</label>
+
+    <div id="compatibilidades">
+
+        <div class="compatibilidad">
+
+            <input
+                type="text"
+                class="modelo"
+                placeholder="Modelo del auto (Ej: Nissan Sentra)"
+                required>
+
+            <input
+                type="number"
+                class="anio_inicio"
+                placeholder="Desde">
+
+            <input
+                type="number"
+                class="anio_fin"
+                placeholder="Hasta">
+
+            <button
+                type="button"
+                class="eliminarCompatibilidad"
+                onclick="eliminarCompatibilidad(this)">
+                ❌
+            </button>
+
+        </div>
+
+    </div>
+
+    <button
+        type="button"
+        id="agregarCompatibilidad"
+        style="margin-top:10px;">
+        ➕ Agregar otro modelo
+    </button>
+
 </div>
             <div>
                 <label>Precio ($)</label>
@@ -296,44 +361,158 @@ window.addEventListener("DOMContentLoaded", () => {
         volverAlPanel();
     });
 
-    document.getElementById("product-form").addEventListener("submit", async (e) => {
-        e.preventDefault();
+   document.getElementById("product-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-        const producto = {
-            codigo_producto: document.getElementById("codigo").value,
-            nombre_pieza: document.getElementById("nombre").value,
-            marca: document.getElementById("marca").value,
-            proveedor: document.getElementById("proveedor").value,
-            modelo_auto: document.getElementById("modelo_auto").value,
-            anio_auto: parseInt(document.getElementById("anio_auto").value),
-            precio: parseFloat(document.getElementById("precio").value),
-            stock: parseInt(document.getElementById("stock").value),
-            categoria: document.getElementById("categoria").value
-        };
+    // Obtener todas las compatibilidades
+    const compatibilidades = [];
 
-        const { error } = await supabaseClient
-            .from("inventario")
-            .insert([producto]);
+     let datosValidos = true;
 
-        if (error) {
-            console.error(error);
-            return;
-        }
+document.querySelectorAll(".compatibilidad").forEach(c => {
 
-        document.getElementById("modalSuccess").style.display = "flex";
+    const modelo = c.querySelector(".modelo").value.trim();
+
+    const inicioInput = c.querySelector(".anio_inicio");
+    const finInput = c.querySelector(".anio_fin");
+
+const anio_inicio = inicioInput.value ? parseInt(inicioInput.value) : null;
+const anio_fin = finInput.value ? parseInt(finInput.value) : null;
+
+// Limpiar errores anteriores
+inicioInput.setCustomValidity("");
+finInput.setCustomValidity("");
+
+// Validar rango de años
+if (anio_inicio > anio_fin) {
+    finInput.setCustomValidity("El año final debe ser mayor o igual al año inicial.");
+    finInput.reportValidity();
+    datosValidos = false;
+    return;
+}
+
+    compatibilidades.push({
+        modelo,
+        anio_inicio,
+        anio_fin
     });
 
+});
+
+if (!datosValidos) {
+    return;
+}
+
+
+
+    // Crear objeto del producto
+    const producto = {
+
+        codigo_producto: document.getElementById("codigo").value,
+
+        nombre_pieza: document.getElementById("nombre").value,
+
+        marca: document.getElementById("marca").value,
+
+        proveedor: document.getElementById("proveedor").value,
+
+        compatibilidades: compatibilidades,
+
+        precio: parseFloat(document.getElementById("precio").value),
+
+        stock: parseInt(document.getElementById("stock").value),
+
+        categoria: document.getElementById("categoria").value
+
+    };
+
+    const { error } = await supabaseClient
+        .from("inventario")
+        .insert([producto]);
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    document.getElementById("modalSuccess").style.display = "flex";
+});
     document.getElementById("addAnother").addEventListener("click", () => {
-        document.getElementById("product-form").reset();
-        document.getElementById("modalSuccess").style.display = "none";
-    });
+
+    document.getElementById("product-form").reset();
+
+    const contenedor = document.getElementById("compatibilidades");
+
+    // Eliminar todas las filas excepto la primera
+    while (contenedor.children.length > 1) {
+        contenedor.removeChild(contenedor.lastElementChild);
+    }
+
+    // Limpiar la primera fila
+    const primera = contenedor.querySelector(".compatibilidad");
+
+    primera.querySelector(".modelo").value = "";
+    primera.querySelector(".anio_inicio").value = "";
+    primera.querySelector(".anio_fin").value = "";
+
+    document.getElementById("modalSuccess").style.display = "none";
+
+});
 
     document.getElementById("goPanel").addEventListener("click", () => {
         volverAlPanel();
     });
 
+    const contenedor = document.getElementById("compatibilidades");
+
+document
+.getElementById("agregarCompatibilidad")
+.addEventListener("click",()=>{
+
+    const div=document.createElement("div");
+
+    div.className="compatibilidad";
+
+    div.innerHTML = `
+    <input
+        type="text"
+        class="modelo"
+        placeholder="Modelo del auto"
+        required>
+
+    <input
+        type="number"
+        class="anio_inicio"
+        placeholder="Desde">
+
+    <input
+        type="number"
+        class="anio_fin"
+        placeholder="Hasta">
+
+    <button
+        type="button"
+        class="eliminarCompatibilidad"
+        onclick="eliminarCompatibilidad(this)">
+        ❌
+    </button>
+`;
+    contenedor.appendChild(div);
+    });
+    });
+      function eliminarCompatibilidad(btn){
+
+    const lista = document.querySelectorAll(".compatibilidad");
+
+    if(lista.length === 1){
+        return;
+    }
+
+    btn.parentElement.remove();
+
+}
+
     
-});
 </script>
 
 </body>
