@@ -447,6 +447,27 @@ const saveEdit = document.getElementById("saveEdit");
 let rowToEdit = null;
 
 /* ==========================
+   FORMATEAR COMPATIBILIDADES
+========================== */
+
+function formatCompatibilidades(compatibilidades){
+
+    if(!compatibilidades || !Array.isArray(compatibilidades) || compatibilidades.length === 0){
+        return "N/A";
+    }
+
+    return compatibilidades.map(c => {
+        let texto = c.modelo || "";
+        if(c.anio_inicio && c.anio_fin){
+            texto += ` (${c.anio_inicio}-${c.anio_fin})`;
+        } else if(c.anio_inicio){
+            texto += ` (${c.anio_inicio}+)`;
+        }
+        return texto;
+    }).join(", ");
+}
+
+/* ==========================
    CARGAR INVENTARIO
 ========================== */
 
@@ -478,7 +499,7 @@ async function cargarInventario(){
 
             <td>${producto.marca}</td>
 
-            <td>${producto.modelo_auto}</td>
+            <td>${formatCompatibilidades(producto.compatibilidades)}</td>
 
             <td>${producto.proveedor}</td>
 
@@ -736,7 +757,6 @@ function cerrarSesion(){
 
 }
 
-    
 </script>
 </body>
 
