@@ -316,7 +316,7 @@ function renderResults(){
             <td class="text-center">${prod.codigo_producto}</td>
             <td>${prod.marca}</td>
             <td>${prod.nombre_pieza}</td>
-            <td>${prod.modelo_auto || 'N/A'}</td>
+            <td>${Array.isArray(prod.compatibilidades) && prod.compatibilidades.length > 0 ? prod.compatibilidades.map(c => c.modelo).join(', ') : 'N/A'}</td>
             <td class="text-right">$${parseFloat(prod.precio).toFixed(2)}</td>
             <td class="text-center" style="color:${available <= 0 ? '#dc2626' : available <= 5 ? '#f59e0b' : '#16a34a'};font-weight:700;">${available}</td>
             <td class="text-center">
@@ -709,6 +709,7 @@ function regresarPanel(){
     window.location.href = usuarioActivo.perfil === "admin" ? "paneladmin.html" : "panelgenerico.html";
 }
 </script>
+
     
 </body>
 </html>
