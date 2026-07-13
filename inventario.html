@@ -247,7 +247,8 @@ tbody tr:hover{
     background:#ff3b3b;
 }
 
-#cancelDelete{
+#cancelDelete,
+#cancelEdit{
     background:#ddd;
     color:black;
 }
@@ -369,6 +370,47 @@ Eliminar
 
 </div>
 
+    <div id="modalEdit" class="modal">
+
+    <div class="modal-box">
+
+        <h3>Editar producto</h3>
+
+        <br>
+
+        <label>Precio</label>
+
+        <input
+            type="number"
+            id="editPrecio"
+            step="0.01"
+            style="width:100%;padding:10px;margin-top:5px;border-radius:8px;border:1px solid #ccc;">
+
+        <br><br>
+
+        <label>Entrada (Stock)</label>
+
+        <input
+            type="number"
+            id="editStock"
+            style="width:100%;padding:10px;margin-top:5px;border-radius:8px;border:1px solid #ccc;">
+
+        <div class="modal-actions">
+
+            <button id="cancelEdit">
+                Cancelar
+            </button>
+
+            <button id="saveEdit">
+                Guardar
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 
@@ -385,7 +427,7 @@ Eliminar
         document.getElementById("menuAgregarProducto").style.display = "none";
     }
 
-    const tbody = document.getElementById("inventory-body");
+const tbody = document.getElementById("inventory-body");
 const search = document.getElementById("search");
 const category = document.getElementById("categoryFilter");
 
@@ -394,6 +436,15 @@ const cancelDelete = document.getElementById("cancelDelete");
 const confirmDelete = document.getElementById("confirmDelete");
 
 let rowToDelete = null;
+
+const modalEdit = document.getElementById("modalEdit");
+const editPrecio = document.getElementById("editPrecio");
+const editStock = document.getElementById("editStock");
+
+const cancelEdit = document.getElementById("cancelEdit");
+const saveEdit = document.getElementById("saveEdit");
+
+let rowToEdit = null;
 
 /* ==========================
    CARGAR INVENTARIO
@@ -449,13 +500,18 @@ async function cargarInventario(){
 
             <td class="actions">
 
-                <button
-                    class="delete"
-                    onclick="deleteRow(this)">
-                    Eliminar
-                </button>
+    <button
+        onclick="editRow(this)">
+        Editar
+    </button>
 
-            </td>
+    <button
+        class="delete"
+        onclick="deleteRow(this)">
+        Eliminar
+    </button>
+
+</td>
 
         </tr>
         `;
@@ -581,7 +637,6 @@ confirmDelete.addEventListener("click", async ()=>{
 
         if(error){
             console.error(error);
-            alert("No se pudo eliminar el producto. Intenta de nuevo.");
             modalDelete.style.display = "none";
             return;
         }
@@ -606,6 +661,70 @@ modalDelete.addEventListener("click",(e)=>{
 
 });
 
+    function editRow(btn){
+
+    rowToEdit = btn.closest("tr");
+
+    const precioTexto = rowToEdit.children[6].innerText.replace("$","");
+
+    const stockTexto =
+        rowToEdit.querySelector(".stock").innerText;
+
+    editPrecio.value = precioTexto;
+    editStock.value = stockTexto;
+
+    modalEdit.style.display = "flex";
+
+}
+    cancelEdit.addEventListener("click", () => {
+
+    modalEdit.style.display = "none";
+    rowToEdit = null;
+
+});
+    saveEdit.addEventListener("click", async () => {
+
+    if (!rowToEdit) return;
+
+    const id = rowToEdit.dataset.id;
+
+    const nuevoPrecio = parseFloat(editPrecio.value);
+    const nuevoStock = parseInt(editStock.value);
+
+    saveEdit.disabled = true;
+
+    const { error } = await supabaseClient
+        .from("inventario")
+        .update({
+            precio: nuevoPrecio,
+            stock: nuevoStock
+        })
+        .eq("id", id);
+
+    saveEdit.disabled = false;
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    modalEdit.style.display = "none";
+    rowToEdit = null;
+
+    cargarInventario();
+
+});
+    modalEdit.addEventListener("click", (e) => {
+
+    if (e.target === modalEdit) {
+
+        modalEdit.style.display = "none";
+        rowToEdit = null;
+
+    }
+
+});
+
 /* ==========================
    CERRAR SESIÓN
 ========================== */
@@ -619,7 +738,6 @@ function cerrarSesion(){
 
     
 </script>
-
 </body>
 
 </html>
