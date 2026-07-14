@@ -379,6 +379,65 @@ Eliminar
 
         <br>
 
+        <label>Código (no editable)</label>
+
+        <input
+            type="text"
+            id="editCodigo"
+            disabled
+            style="width:100%;padding:10px;margin-top:5px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;background:#f1f5f9;color:#64748b;">
+
+        <label>Nombre de la pieza</label>
+
+        <input
+            type="text"
+            id="editNombre"
+            style="width:100%;padding:10px;margin-top:5px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;">
+
+        <label>Marca</label>
+
+        <input
+            type="text"
+            id="editMarca"
+            style="width:100%;padding:10px;margin-top:5px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;">
+
+        <label>Proveedor</label>
+
+        <input
+            type="text"
+            id="editProveedor"
+            style="width:100%;padding:10px;margin-top:5px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;">
+
+        <label>Categoría</label>
+
+        <select
+            id="editCategoria"
+            style="width:100%;padding:10px;margin-top:5px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;">
+
+            <option value="Químicos">Químicos</option>
+            <option value="Aceites">Aceites</option>
+            <option value="Tornillería">Tornillería</option>
+            <option value="Hules">Hules</option>
+            <option value="Refacciones">Refacciones</option>
+            <option value="Partes Eléctricas">Partes Eléctricas</option>
+
+        </select>
+
+        <label>Compatibilidad con vehículos</label>
+
+        <div id="compatibilidadesEdit" style="margin-top:5px;">
+
+        </div>
+
+        <button
+            type="button"
+            id="agregarCompatibilidadEdit"
+            style="margin-top:10px;margin-bottom:10px;">
+            ➕ Agregar otro modelo
+        </button>
+
+        <br>
+
         <label>Precio</label>
 
         <input
@@ -437,8 +496,15 @@ const cancelDelete = document.getElementById("cancelDelete");
 const confirmDelete = document.getElementById("confirmDelete");
 
 let rowToDelete = null;
+let productosCache = [];
 
 const modalEdit = document.getElementById("modalEdit");
+const editCodigo = document.getElementById("editCodigo");
+const editNombre = document.getElementById("editNombre");
+const editMarca = document.getElementById("editMarca");
+const editProveedor = document.getElementById("editProveedor");
+const editCategoria = document.getElementById("editCategoria");
+const compatibilidadesEditContainer = document.getElementById("compatibilidadesEdit");
 const editPrecio = document.getElementById("editPrecio");
 const editStock = document.getElementById("editStock");
 
@@ -486,6 +552,8 @@ async function cargarInventario(){
         console.error(error);
         return;
     }
+
+    productosCache = data;
 
     tbody.innerHTML = "";
 
@@ -683,17 +751,91 @@ modalDelete.addEventListener("click",(e)=>{
 
 });
 
+    function crearFilaCompatibilidadEdit(modelo = "", anio_inicio = "", anio_fin = ""){
+
+    const div = document.createElement("div");
+    div.className = "compatibilidad";
+
+    div.innerHTML = `
+    <input
+        type="text"
+        class="modeloEdit"
+        placeholder="Modelo del auto (Ej: Nissan Sentra)"
+        value="${modelo.replace(/"/g, '&quot;')}"
+        required>
+
+    <input
+        type="number"
+        class="anioInicioEdit"
+        placeholder="Desde"
+        value="${anio_inicio}">
+
+    <input
+        type="number"
+        class="anioFinEdit"
+        placeholder="Hasta"
+        value="${anio_fin}">
+
+    <button
+        type="button"
+        class="eliminarCompatibilidad"
+        onclick="eliminarCompatibilidadEdit(this)">
+        ❌
+    </button>
+    `;
+
+    return div;
+
+}
+
+    function eliminarCompatibilidadEdit(btn){
+
+    const contenedor = document.getElementById("compatibilidadesEdit");
+
+    if(contenedor.children.length > 1){
+        btn.closest(".compatibilidad").remove();
+    }
+
+}
+
+    document.getElementById("agregarCompatibilidadEdit").addEventListener("click", () => {
+
+    compatibilidadesEditContainer.appendChild(crearFilaCompatibilidadEdit());
+
+});
+
     function editRow(btn){
 
     rowToEdit = btn.closest("tr");
 
-    const precioTexto = rowToEdit.children[6].innerText.replace("$","");
+    const id = rowToEdit.dataset.id;
+    const producto = productosCache.find(p => String(p.id) === String(id));
 
-    const stockTexto =
-        rowToEdit.querySelector(".stock").innerText;
+    if(!producto){
+        console.error("No se encontró el producto en cache:", id);
+        return;
+    }
 
-    editPrecio.value = precioTexto;
-    editStock.value = stockTexto;
+    editCodigo.value = producto.codigo_producto || "";
+    editNombre.value = producto.nombre_pieza || "";
+    editMarca.value = producto.marca || "";
+    editProveedor.value = producto.proveedor || "";
+    editCategoria.value = producto.categoria || "";
+    editPrecio.value = producto.precio;
+    editStock.value = producto.stock;
+
+    // Reconstruir filas de compatibilidad
+    compatibilidadesEditContainer.innerHTML = "";
+
+    const compatibilidades = Array.isArray(producto.compatibilidades) && producto.compatibilidades.length > 0
+        ? producto.compatibilidades
+        : [{ modelo: "", anio_inicio: "", anio_fin: "" }];
+
+    compatibilidades.forEach(c => {
+        compatibilidadesEditContainer.appendChild(
+            crearFilaCompatibilidadEdit(c.modelo || "", c.anio_inicio || "", c.anio_fin || "")
+        );
+    });
 
     modalEdit.style.display = "flex";
 
@@ -710,14 +852,47 @@ modalDelete.addEventListener("click",(e)=>{
 
     const id = rowToEdit.dataset.id;
 
+    const nuevoNombre = editNombre.value.trim();
+    const nuevaMarca = editMarca.value.trim();
+    const nuevoProveedor = editProveedor.value.trim();
+    const nuevaCategoria = editCategoria.value;
     const nuevoPrecio = parseFloat(editPrecio.value);
     const nuevoStock = parseInt(editStock.value);
+
+    if(!nuevoNombre || !nuevaMarca || !nuevoProveedor || isNaN(nuevoPrecio) || isNaN(nuevoStock)){
+        alert("Por favor completa todos los campos correctamente.");
+        return;
+    }
+
+    // Reconstruir arreglo de compatibilidades
+    const nuevasCompatibilidades = [];
+
+    compatibilidadesEditContainer.querySelectorAll(".compatibilidad").forEach(c => {
+
+        const modelo = c.querySelector(".modeloEdit").value.trim();
+        const anio_inicio = c.querySelector(".anioInicioEdit").value;
+        const anio_fin = c.querySelector(".anioFinEdit").value;
+
+        if(modelo){
+            nuevasCompatibilidades.push({
+                modelo,
+                anio_inicio: anio_inicio ? parseInt(anio_inicio) : null,
+                anio_fin: anio_fin ? parseInt(anio_fin) : null
+            });
+        }
+
+    });
 
     saveEdit.disabled = true;
 
     const { error } = await supabaseClient
         .from("inventario")
         .update({
+            nombre_pieza: nuevoNombre,
+            marca: nuevaMarca,
+            proveedor: nuevoProveedor,
+            categoria: nuevaCategoria,
+            compatibilidades: nuevasCompatibilidades,
             precio: nuevoPrecio,
             stock: nuevoStock
         })
@@ -727,6 +902,7 @@ modalDelete.addEventListener("click",(e)=>{
 
     if (error) {
         console.error(error);
+        alert("Ocurrió un error al guardar los cambios.");
         return;
     }
 
