@@ -229,8 +229,81 @@ tbody tr:hover{
     background:white;
     padding:25px;
     border-radius:16px;
-    width:320px;
+    width:560px;
+    max-width:92vw;
+    max-height:88vh;
+    overflow-y:auto;
+    text-align:left;
+}
+
+.modal-box h3{
     text-align:center;
+}
+
+.edit-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin-top:10px;
+}
+
+.edit-grid label{
+    display:block;
+    font-size:0.85rem;
+    color:#555;
+    margin-bottom:5px;
+}
+
+.edit-grid input,
+.edit-grid select{
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    box-sizing:border-box;
+}
+
+.edit-full{
+    grid-column:span 2;
+}
+
+.compatibilidad{
+    display:grid;
+    grid-template-columns:2fr 1fr 1fr auto;
+    gap:10px;
+    margin-bottom:10px;
+    align-items:center;
+}
+
+.compatibilidad input{
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    box-sizing:border-box;
+}
+
+.compatibilidad button{
+    width:40px;
+    margin:0;
+    padding:10px 0;
+    background:#d9534f;
+}
+
+.compatibilidad button:hover{
+    background:#c9302c;
+}
+
+@media (max-width:600px){
+    .edit-grid{
+        grid-template-columns:1fr;
+    }
+    .edit-full{
+        grid-column:span 1;
+    }
+    .compatibilidad{
+        grid-template-columns:1fr 1fr;
+    }
 }
 
 .modal-actions{
@@ -377,83 +450,62 @@ Eliminar
 
         <h3>Editar producto</h3>
 
-        <br>
+        <div class="edit-grid">
 
-        <label>Código (no editable)</label>
+            <div class="edit-full">
+                <label>Código (no editable)</label>
+                <input type="text" id="editCodigo" disabled style="background:#f1f5f9;color:#64748b;">
+            </div>
 
-        <input
-            type="text"
-            id="editCodigo"
-            disabled
-            style="width:100%;padding:10px;margin-top:5px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;background:#f1f5f9;color:#64748b;">
+            <div>
+                <label>Nombre de la pieza</label>
+                <input type="text" id="editNombre">
+            </div>
 
-        <label>Nombre de la pieza</label>
+            <div>
+                <label>Marca</label>
+                <input type="text" id="editMarca">
+            </div>
 
-        <input
-            type="text"
-            id="editNombre"
-            style="width:100%;padding:10px;margin-top:5px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;">
+            <div>
+                <label>Proveedor</label>
+                <input type="text" id="editProveedor">
+            </div>
 
-        <label>Marca</label>
+            <div>
+                <label>Categoría</label>
+                <select id="editCategoria">
+                    <option value="Químicos">Químicos</option>
+                    <option value="Aceites">Aceites</option>
+                    <option value="Tornillería">Tornillería</option>
+                    <option value="Hules">Hules</option>
+                    <option value="Refacciones">Refacciones</option>
+                    <option value="Partes Eléctricas">Partes Eléctricas</option>
+                </select>
+            </div>
 
-        <input
-            type="text"
-            id="editMarca"
-            style="width:100%;padding:10px;margin-top:5px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;">
+            <div class="edit-full">
+                <label>Compatibilidad con vehículos</label>
+                <div id="compatibilidadesEdit"></div>
+                <button
+                    type="button"
+                    id="agregarCompatibilidadEdit"
+                    style="margin-top:5px;width:auto;padding:8px 16px;">
+                    ➕ Agregar otro modelo
+                </button>
+            </div>
 
-        <label>Proveedor</label>
+            <div>
+                <label>Precio</label>
+                <input type="number" id="editPrecio" step="0.01">
+            </div>
 
-        <input
-            type="text"
-            id="editProveedor"
-            style="width:100%;padding:10px;margin-top:5px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;">
-
-        <label>Categoría</label>
-
-        <select
-            id="editCategoria"
-            style="width:100%;padding:10px;margin-top:5px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;">
-
-            <option value="Químicos">Químicos</option>
-            <option value="Aceites">Aceites</option>
-            <option value="Tornillería">Tornillería</option>
-            <option value="Hules">Hules</option>
-            <option value="Refacciones">Refacciones</option>
-            <option value="Partes Eléctricas">Partes Eléctricas</option>
-
-        </select>
-
-        <label>Compatibilidad con vehículos</label>
-
-        <div id="compatibilidadesEdit" style="margin-top:5px;">
+            <div>
+                <label>Entrada (Stock)</label>
+                <input type="number" id="editStock">
+            </div>
 
         </div>
-
-        <button
-            type="button"
-            id="agregarCompatibilidadEdit"
-            style="margin-top:10px;margin-bottom:10px;">
-            ➕ Agregar otro modelo
-        </button>
-
-        <br>
-
-        <label>Precio</label>
-
-        <input
-            type="number"
-            id="editPrecio"
-            step="0.01"
-            style="width:100%;padding:10px;margin-top:5px;border-radius:8px;border:1px solid #ccc;">
-
-        <br><br>
-
-        <label>Entrada (Stock)</label>
-
-        <input
-            type="number"
-            id="editStock"
-            style="width:100%;padding:10px;margin-top:5px;border-radius:8px;border:1px solid #ccc;">
 
         <div class="modal-actions">
 
