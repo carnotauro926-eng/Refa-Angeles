@@ -290,7 +290,7 @@ tbody tr:hover{
 
 .compatibilidad{
     display:grid;
-    grid-template-columns:1fr 2fr 1fr 1fr auto;
+    grid-template-columns:2fr 1fr 1fr auto;
     gap:10px;
     margin-bottom:10px;
     align-items:center;
@@ -855,19 +855,12 @@ modalDelete.addEventListener("click",(e)=>{
 
 });
 
-    function crearFilaCompatibilidadEdit(tipo = "", modelo = "", anio_inicio = "", anio_fin = ""){
+    function crearFilaCompatibilidadEdit(modelo = "", anio_inicio = "", anio_fin = ""){
 
     const div = document.createElement("div");
     div.className = "compatibilidad";
 
     div.innerHTML = `
-    <select class="tipoEdit" required>
-        <option value="" disabled ${!tipo ? "selected" : ""}>Tipo</option>
-        <option value="Auto" ${tipo === "Auto" ? "selected" : ""}>Auto</option>
-        <option value="Moto" ${tipo === "Moto" ? "selected" : ""}>Moto</option>
-        <option value="Lancha" ${tipo === "Lancha" ? "selected" : ""}>Lancha</option>
-    </select>
-
     <input
         type="text"
         class="modeloEdit"
@@ -946,11 +939,11 @@ modalDelete.addEventListener("click",(e)=>{
 
     const compatibilidades = Array.isArray(producto.compatibilidades) && producto.compatibilidades.length > 0
         ? producto.compatibilidades
-        : [{ tipo: "", modelo: "", anio_inicio: "", anio_fin: "" }];
+        : [{ modelo: "", anio_inicio: "", anio_fin: "" }];
 
     compatibilidades.forEach(c => {
         compatibilidadesEditContainer.appendChild(
-            crearFilaCompatibilidadEdit(c.tipo || "", c.modelo || "", c.anio_inicio || "", c.anio_fin || "")
+            crearFilaCompatibilidadEdit(c.modelo || "", c.anio_inicio || "", c.anio_fin || "")
         );
     });
 
@@ -996,14 +989,12 @@ modalDelete.addEventListener("click",(e)=>{
 
     compatibilidadesEditContainer.querySelectorAll(".compatibilidad").forEach(c => {
 
-        const tipo = c.querySelector(".tipoEdit").value;
         const modelo = c.querySelector(".modeloEdit").value.trim();
         const anio_inicio = c.querySelector(".anioInicioEdit").value;
         const anio_fin = c.querySelector(".anioFinEdit").value;
 
         if(modelo){
             nuevasCompatibilidades.push({
-                tipo,
                 modelo,
                 anio_inicio: anio_inicio ? parseInt(anio_inicio) : null,
                 anio_fin: anio_fin ? parseInt(anio_fin) : null
