@@ -23,10 +23,6 @@ body{
     min-height:100vh;
 }
 
-/* ======================
-   SIDEBAR
-====================== */
-
 aside{
     width:260px;
     background:linear-gradient(180deg,#1e5eff,#194ddb);
@@ -65,10 +61,6 @@ aside{
 .salir{
     margin-top:auto;
 }
-
-/* ======================
-   CONTENIDO
-====================== */
 
 main{
     flex:1;
@@ -109,10 +101,6 @@ button:hover{
     box-shadow:0 10px 25px rgba(0,0,0,.05);
 }
 
-/* ======================
-   CONTROLES
-====================== */
-
 .controls{
     display:flex;
     gap:12px;
@@ -142,10 +130,6 @@ select{
     background:#f9fbff;
 }
 
-/* ======================
-   TABLA
-====================== */
-
 table{
     width:100%;
     border-collapse:collapse;
@@ -165,10 +149,6 @@ td{
 tbody tr:hover{
     background:#f3f7ff;
 }
-
-/* ======================
-   STOCK
-====================== */
 
 .badge{
     background:#e8f0ff;
@@ -192,10 +172,6 @@ tbody tr:hover{
     background:#ffecec !important;
 }
 
-/* ======================
-   BOTONES
-====================== */
-
 .actions{
     display:flex;
     gap:6px;
@@ -210,10 +186,6 @@ tbody tr:hover{
     background:#ff3b3b;
     color:white;
 }
-
-/* ======================
-   MODAL
-====================== */
 
 .modal{
     display:none;
@@ -562,6 +534,24 @@ Eliminar
             </button>
 
         </div>
+
+    </div>
+
+</div>
+
+<!-- MODAL MENSAJES -->
+
+<div id="modalMensaje" class="modal">
+
+    <div class="modal-box" style="max-width:420px;text-align:center;">
+
+        <h3 id="tituloMensaje">Mensaje</h3>
+
+        <p id="textoMensaje" style="margin:20px 0;font-size:16px;"></p>
+
+        <button id="cerrarMensaje">
+            Aceptar
+        </button>
 
     </div>
 
@@ -1099,23 +1089,7 @@ function cerrarSesion(){
 
     
 </script>
-    <!-- MODAL MENSAJES -->
 
-<div id="modalMensaje" class="modal">
-
-    <div class="modal-box" style="max-width:420px;text-align:center;">
-
-        <h3 id="tituloMensaje">Mensaje</h3>
-
-        <p id="textoMensaje" style="margin:20px 0;font-size:16px;"></p>
-
-        <button id="cerrarMensaje">
-            Aceptar
-        </button>
-
-    </div>
-
-</div>
 </body>
 
 </html>
