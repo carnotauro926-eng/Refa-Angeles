@@ -269,13 +269,14 @@ tbody tr:hover{
 
 .compatibilidad{
     display:grid;
-    grid-template-columns:2fr 1fr 1fr auto;
+    grid-template-columns:1fr 2fr 1fr 1fr auto;
     gap:10px;
     margin-bottom:10px;
     align-items:center;
 }
 
-.compatibilidad input{
+.compatibilidad input,
+.compatibilidad select{
     width:100%;
     padding:10px;
     border-radius:8px;
@@ -303,6 +304,9 @@ tbody tr:hover{
     }
     .compatibilidad{
         grid-template-columns:1fr 1fr;
+    }
+    .compatibilidad .modeloEdit{
+        grid-column:span 2;
     }
 }
 
@@ -576,7 +580,7 @@ function formatCompatibilidades(compatibilidades){
     }
 
     return compatibilidades.map(c => {
-        let texto = c.modelo || "";
+        let texto = c.tipo ? `${c.tipo}: ${c.modelo || ""}` : (c.modelo || "");
         if(c.anio_inicio && c.anio_fin){
             texto += ` (${c.anio_inicio}-${c.anio_fin})`;
         } else if(c.anio_inicio){
@@ -803,16 +807,23 @@ modalDelete.addEventListener("click",(e)=>{
 
 });
 
-    function crearFilaCompatibilidadEdit(modelo = "", anio_inicio = "", anio_fin = ""){
+    function crearFilaCompatibilidadEdit(tipo = "", modelo = "", anio_inicio = "", anio_fin = ""){
 
     const div = document.createElement("div");
     div.className = "compatibilidad";
 
     div.innerHTML = `
+    <select class="tipoEdit" required>
+        <option value="" disabled ${!tipo ? "selected" : ""}>Tipo</option>
+        <option value="Auto" ${tipo === "Auto" ? "selected" : ""}>Auto</option>
+        <option value="Moto" ${tipo === "Moto" ? "selected" : ""}>Moto</option>
+        <option value="Lancha" ${tipo === "Lancha" ? "selected" : ""}>Lancha</option>
+    </select>
+
     <input
         type="text"
         class="modeloEdit"
-        placeholder="Modelo del auto (Ej: Nissan Sentra)"
+        placeholder="Modelo (Ej: Nissan Sentra)"
         value="${modelo.replace(/"/g, '&quot;')}"
         required>
 
@@ -881,11 +892,11 @@ modalDelete.addEventListener("click",(e)=>{
 
     const compatibilidades = Array.isArray(producto.compatibilidades) && producto.compatibilidades.length > 0
         ? producto.compatibilidades
-        : [{ modelo: "", anio_inicio: "", anio_fin: "" }];
+        : [{ tipo: "", modelo: "", anio_inicio: "", anio_fin: "" }];
 
     compatibilidades.forEach(c => {
         compatibilidadesEditContainer.appendChild(
-            crearFilaCompatibilidadEdit(c.modelo || "", c.anio_inicio || "", c.anio_fin || "")
+            crearFilaCompatibilidadEdit(c.tipo || "", c.modelo || "", c.anio_inicio || "", c.anio_fin || "")
         );
     });
 
@@ -921,12 +932,14 @@ modalDelete.addEventListener("click",(e)=>{
 
     compatibilidadesEditContainer.querySelectorAll(".compatibilidad").forEach(c => {
 
+        const tipo = c.querySelector(".tipoEdit").value;
         const modelo = c.querySelector(".modeloEdit").value.trim();
         const anio_inicio = c.querySelector(".anioInicioEdit").value;
         const anio_fin = c.querySelector(".anioFinEdit").value;
 
         if(modelo){
             nuevasCompatibilidades.push({
+                tipo,
                 modelo,
                 anio_inicio: anio_inicio ? parseInt(anio_inicio) : null,
                 anio_fin: anio_fin ? parseInt(anio_fin) : null
@@ -954,7 +967,7 @@ modalDelete.addEventListener("click",(e)=>{
 
     if (error) {
         console.error(error);
-        alert("Ocurrió un error al guardar los cambios.");
+        alert("Error al guardar: " + (error.message || JSON.stringify(error)));
         return;
     }
 
