@@ -267,6 +267,27 @@ tbody tr:hover{
     grid-column:span 2;
 }
 
+.tipo-checkboxes{
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+    padding:5px 0;
+}
+
+.tipo-checkboxes label{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-weight:normal;
+    cursor:pointer;
+    font-size:0.9rem;
+}
+
+.tipo-checkboxes input{
+    width:auto;
+    cursor:pointer;
+}
+
 .compatibilidad{
     display:grid;
     grid-template-columns:1fr 2fr 1fr 1fr auto;
@@ -486,13 +507,13 @@ Eliminar
                 <input type="text" id="editProveedor">
             </div>
 
-            <div>
-                <label>Tipo</label>
-                <select id="editTipo">
-                    <option value="Auto">Auto</option>
-                    <option value="Motocicleta">Motocicleta</option>
-                    <option value="Lancha">Lancha</option>
-                </select>
+            <div class="edit-full">
+                <label>Tipo (puede seleccionar varios)</label>
+                <div class="tipo-checkboxes">
+                    <label><input type="checkbox" class="editTipoCheckbox" value="Auto"> Auto</label>
+                    <label><input type="checkbox" class="editTipoCheckbox" value="Motocicleta"> Motocicleta</label>
+                    <label><input type="checkbox" class="editTipoCheckbox" value="Lancha"> Lancha</label>
+                </div>
             </div>
 
             <div>
@@ -579,7 +600,6 @@ const editCodigo = document.getElementById("editCodigo");
 const editNombre = document.getElementById("editNombre");
 const editMarca = document.getElementById("editMarca");
 const editProveedor = document.getElementById("editProveedor");
-const editTipo = document.getElementById("editTipo");
 const editCategoria = document.getElementById("editCategoria");
 const compatibilidadesEditContainer = document.getElementById("compatibilidadesEdit");
 const editPrecio = document.getElementById("editPrecio");
@@ -637,7 +657,7 @@ async function cargarInventario(){
     data.forEach(producto=>{
 
         tbody.innerHTML += `
-        <tr data-category="${producto.categoria}" data-tipo="${producto.tipo || ''}" data-id="${producto.id}">
+        <tr data-category="${producto.categoria}" data-tipo="${Array.isArray(producto.tipo) ? producto.tipo.join(',') : (producto.tipo || '')}" data-id="${producto.id}">
 
             <td>${producto.codigo_producto}</td>
 
@@ -645,7 +665,7 @@ async function cargarInventario(){
 
             <td>${producto.marca}</td>
 
-            <td>${producto.tipo || 'N/A'}</td>
+            <td>${Array.isArray(producto.tipo) && producto.tipo.length > 0 ? producto.tipo.join(', ') : 'N/A'}</td>
 
             <td>${formatCompatibilidades(producto.compatibilidades)}</td>
 
@@ -711,13 +731,13 @@ function filterTable(){
 
         const contenido = row.innerText.toLowerCase();
         const cat = row.dataset.category.toLowerCase();
-        const rowTipo = (row.dataset.tipo || "").toLowerCase();
+        const rowTipos = (row.dataset.tipo || "").toLowerCase().split(",").map(t => t.trim());
 
         const coincideTexto = contenido.includes(texto);
         const coincideCategoria =
             categoria === "" || cat === categoria;
         const coincideTipo =
-            tipo === "" || rowTipo === tipo;
+            tipo === "" || rowTipos.includes(tipo);
 
         row.style.display =
             coincideTexto && coincideCategoria && coincideTipo
@@ -911,7 +931,12 @@ modalDelete.addEventListener("click",(e)=>{
     editNombre.value = producto.nombre_pieza || "";
     editMarca.value = producto.marca || "";
     editProveedor.value = producto.proveedor || "";
-    editTipo.value = producto.tipo || "Auto";
+
+    const tiposProducto = Array.isArray(producto.tipo) ? producto.tipo : [];
+    document.querySelectorAll(".editTipoCheckbox").forEach(cb => {
+        cb.checked = tiposProducto.includes(cb.value);
+    });
+
     editCategoria.value = producto.categoria || "";
     editPrecio.value = producto.precio;
     editStock.value = producto.stock;
@@ -947,13 +972,22 @@ modalDelete.addEventListener("click",(e)=>{
     const nuevoNombre = editNombre.value.trim();
     const nuevaMarca = editMarca.value.trim();
     const nuevoProveedor = editProveedor.value.trim();
-    const nuevoTipo = editTipo.value;
+
+    const nuevosTipos = Array.from(
+        document.querySelectorAll(".editTipoCheckbox:checked")
+    ).map(cb => cb.value);
+
     const nuevaCategoria = editCategoria.value;
     const nuevoPrecio = parseFloat(editPrecio.value);
     const nuevoStock = parseInt(editStock.value);
 
     if(!nuevoNombre || !nuevaMarca || !nuevoProveedor || isNaN(nuevoPrecio) || isNaN(nuevoStock)){
         alert("Por favor completa todos los campos correctamente.");
+        return;
+    }
+
+    if(nuevosTipos.length === 0){
+        alert("Selecciona al menos un tipo (Auto, Motocicleta o Lancha).");
         return;
     }
 
@@ -986,7 +1020,7 @@ modalDelete.addEventListener("click",(e)=>{
             nombre_pieza: nuevoNombre,
             marca: nuevaMarca,
             proveedor: nuevoProveedor,
-            tipo: nuevoTipo,
+            tipo: nuevosTipos,
             categoria: nuevaCategoria,
             compatibilidades: nuevasCompatibilidades,
             precio: nuevoPrecio,
