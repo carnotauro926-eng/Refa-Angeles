@@ -610,6 +610,38 @@ const saveEdit = document.getElementById("saveEdit");
 
 let rowToEdit = null;
 
+// ==========================
+// MODAL DE MENSAJES
+// ==========================
+
+const modalMensaje = document.getElementById("modalMensaje");
+const tituloMensaje = document.getElementById("tituloMensaje");
+const textoMensaje = document.getElementById("textoMensaje");
+const cerrarMensaje = document.getElementById("cerrarMensaje");
+
+function mostrarMensaje(titulo, mensaje){
+
+    tituloMensaje.textContent = titulo;
+    textoMensaje.textContent = mensaje;
+
+    modalMensaje.style.display = "flex";
+
+}
+
+cerrarMensaje.addEventListener("click",()=>{
+
+    modalMensaje.style.display="none";
+
+});
+
+modalMensaje.addEventListener("click",(e)=>{
+
+    if(e.target===modalMensaje){
+        modalMensaje.style.display="none";
+    }
+
+});
+
 /* ==========================
    FORMATEAR COMPATIBILIDADES
 ========================== */
@@ -975,12 +1007,18 @@ modalDelete.addEventListener("click",(e)=>{
     const nuevoStock = parseInt(editStock.value);
 
     if(!nuevoNombre || !nuevaMarca || !nuevoProveedor || isNaN(nuevoPrecio) || isNaN(nuevoStock)){
-        alert("Por favor completa todos los campos correctamente.");
+        mostrarMensaje(
+    "Campos incompletos",
+    "Por favor completa todos los campos correctamente"
+);
         return;
     }
 
     if(nuevosTipos.length === 0){
-        alert("Selecciona al menos un tipo (Auto, Motocicleta o Lancha).");
+        mostrarMensaje(
+    "Tipo de vehículo",
+    "Selecciona al menos un tipo (Auto, Motocicleta o Lancha)"
+);
         return;
     }
 
@@ -1023,7 +1061,11 @@ modalDelete.addEventListener("click",(e)=>{
 
     if (error) {
         console.error(error);
-        alert("Error al guardar: " + (error.message || JSON.stringify(error)));
+        mostrarMensaje(
+    "Error",
+    "No fue posible guardar los cambios\n\n" +
+    (error.message || JSON.stringify(error))
+);
         return;
     }
 
@@ -1057,6 +1099,23 @@ function cerrarSesion(){
 
     
 </script>
+    <!-- MODAL MENSAJES -->
+
+<div id="modalMensaje" class="modal">
+
+    <div class="modal-box" style="max-width:420px;text-align:center;">
+
+        <h3 id="tituloMensaje">Mensaje</h3>
+
+        <p id="textoMensaje" style="margin:20px 0;font-size:16px;"></p>
+
+        <button id="cerrarMensaje">
+            Aceptar
+        </button>
+
+    </div>
+
+</div>
 </body>
 
 </html>
