@@ -134,6 +134,12 @@ button:hover{
     .full-width{
         grid-column:span 1;
     }
+    .compatibilidad{
+        grid-template-columns:1fr 1fr;
+    }
+    .compatibilidad .modelo{
+        grid-column:span 2;
+    }
 }
 
 .modal{
@@ -180,7 +186,7 @@ button:hover{
 .compatibilidad{
 
     display:grid;
-    grid-template-columns:2fr 1fr 1fr auto;
+    grid-template-columns:1fr 2fr 1fr 1fr auto;
     gap:10px;
     margin-bottom:12px;
     align-items:center;
@@ -231,6 +237,9 @@ button:hover{
             <div>
                 <label>Código del producto</label>
                 <input type="text" id="codigo" required>
+                <span id="codigoError" style="display:none;color:#d9534f;font-size:0.85rem;margin-top:4px;">
+                    ⚠️ Este código ya está registrado.
+                </span>
             </div>
 
             <div>
@@ -256,10 +265,17 @@ button:hover{
 
         <div class="compatibilidad">
 
+            <select class="tipo" required>
+                <option value="" disabled selected>Tipo</option>
+                <option value="Auto">Auto</option>
+                <option value="Moto">Moto</option>
+                <option value="Lancha">Lancha</option>
+            </select>
+
             <input
                 type="text"
                 class="modelo"
-                placeholder="Modelo del auto (Ej: Nissan Sentra)"
+                placeholder="Modelo (Ej: Nissan Sentra)"
                 required>
 
             <input
@@ -362,6 +378,11 @@ window.addEventListener("DOMContentLoaded", () => {
         volverAlPanel();
     });
 
+    document.getElementById("codigo").addEventListener("input", function(){
+        document.getElementById("codigoError").style.display = "none";
+        this.style.borderColor = "";
+    });
+
    document.getElementById("product-form").addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -372,6 +393,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 document.querySelectorAll(".compatibilidad").forEach(c => {
 
+    const tipo = c.querySelector(".tipo").value;
     const modelo = c.querySelector(".modelo").value.trim();
 
     const inicioInput = c.querySelector(".anio_inicio");
@@ -393,6 +415,7 @@ if (anio_inicio > anio_fin) {
 }
 
     compatibilidades.push({
+        tipo,
         modelo,
         anio_inicio,
         anio_fin
@@ -427,12 +450,31 @@ if (!datosValidos) {
 
     };
 
+    // Ocultar mensaje de error previo antes de intentar guardar
+    document.getElementById("codigoError").style.display = "none";
+    document.getElementById("codigo").style.borderColor = "";
+
     const { error } = await supabaseClient
         .from("inventario")
         .insert([producto]);
 
     if (error) {
+
         console.error(error);
+
+        // Código 23505 = unique_violation (el codigo_producto ya existe)
+        if (error.code === "23505") {
+
+            const codigoInput = document.getElementById("codigo");
+            const codigoError = document.getElementById("codigoError");
+
+            codigoError.style.display = "inline-block";
+            codigoInput.style.borderColor = "#d9534f";
+            codigoInput.focus();
+            codigoInput.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        }
+
         return;
     }
 
@@ -452,6 +494,7 @@ if (!datosValidos) {
     // Limpiar la primera fila
     const primera = contenedor.querySelector(".compatibilidad");
 
+    primera.querySelector(".tipo").value = "";
     primera.querySelector(".modelo").value = "";
     primera.querySelector(".anio_inicio").value = "";
     primera.querySelector(".anio_fin").value = "";
@@ -475,10 +518,17 @@ document
     div.className="compatibilidad";
 
     div.innerHTML = `
+    <select class="tipo" required>
+        <option value="" disabled selected>Tipo</option>
+        <option value="Auto">Auto</option>
+        <option value="Moto">Moto</option>
+        <option value="Lancha">Lancha</option>
+    </select>
+
     <input
         type="text"
         class="modelo"
-        placeholder="Modelo del auto"
+        placeholder="Modelo (Ej: Nissan Sentra)"
         required>
 
     <input
