@@ -317,6 +317,16 @@ button:hover{
                 <input type="number" id="stock" required>
             </div>
 
+            <div>
+                <label>Tipo</label>
+                <select id="tipo" required>
+                    <option value="" disabled selected>Selecciona un tipo</option>
+                    <option value="Auto">Auto</option>
+                    <option value="Motocicleta">Motocicleta</option>
+                    <option value="Lancha">Lancha</option>
+                </select>
+            </div>
+
             <!-- CATEGORÍA ACTUALIZADA -->
             <div class="full-width">
                 <label>Categoría</label>
@@ -446,7 +456,9 @@ if (!datosValidos) {
 
         stock: parseInt(document.getElementById("stock").value),
 
-        categoria: document.getElementById("categoria").value
+        categoria: document.getElementById("categoria").value,
+
+        tipo: document.getElementById("tipo").value
 
     };
 
