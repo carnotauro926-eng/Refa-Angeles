@@ -206,7 +206,7 @@ button:hover{
 .compatibilidad{
 
     display:grid;
-    grid-template-columns:1fr 2fr 1fr 1fr auto;
+    grid-template-columns:2fr 1fr 1fr auto;
     gap:10px;
     margin-bottom:12px;
     align-items:center;
@@ -284,13 +284,6 @@ button:hover{
     <div id="compatibilidades">
 
         <div class="compatibilidad">
-
-            <select class="tipo" required>
-                <option value="" disabled selected>Tipo</option>
-                <option value="Auto">Auto</option>
-                <option value="Moto">Moto</option>
-                <option value="Lancha">Lancha</option>
-            </select>
 
             <input
                 type="text"
@@ -425,7 +418,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
 document.querySelectorAll(".compatibilidad").forEach(c => {
 
-    const tipo = c.querySelector(".tipo").value;
     const modelo = c.querySelector(".modelo").value.trim();
 
     const inicioInput = c.querySelector(".anio_inicio");
@@ -447,7 +439,6 @@ if (anio_inicio > anio_fin) {
 }
 
     compatibilidades.push({
-        tipo,
         modelo,
         anio_inicio,
         anio_fin
@@ -539,7 +530,6 @@ if (tiposSeleccionados.length === 0) {
     // Limpiar la primera fila
     const primera = contenedor.querySelector(".compatibilidad");
 
-    primera.querySelector(".tipo").value = "";
     primera.querySelector(".modelo").value = "";
     primera.querySelector(".anio_inicio").value = "";
     primera.querySelector(".anio_fin").value = "";
@@ -564,13 +554,6 @@ document
     div.className="compatibilidad";
 
     div.innerHTML = `
-    <select class="tipo" required>
-        <option value="" disabled selected>Tipo</option>
-        <option value="Auto">Auto</option>
-        <option value="Moto">Moto</option>
-        <option value="Lancha">Lancha</option>
-    </select>
-
     <input
         type="text"
         class="modelo"
@@ -609,7 +592,6 @@ document
 
 }
 
-    
 </script>
 
 </body>
