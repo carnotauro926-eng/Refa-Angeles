@@ -388,6 +388,15 @@ placeholder="Buscar producto...">
 
 </select>
 
+<select id="tipoFilter">
+
+<option value="">Todos los tipos</option>
+<option value="Auto">Auto</option>
+<option value="Motocicleta">Motocicleta</option>
+<option value="Lancha">Lancha</option>
+
+</select>
+
 </div>
 
 <table>
@@ -399,6 +408,7 @@ placeholder="Buscar producto...">
 <th>Código</th>
 <th>Pieza</th>
 <th>Marca</th>
+<th>Tipo</th>
 <th>Modelo</th>
 <th>Proveedor</th>
 <th>Stock</th>
@@ -477,6 +487,15 @@ Eliminar
             </div>
 
             <div>
+                <label>Tipo</label>
+                <select id="editTipo">
+                    <option value="Auto">Auto</option>
+                    <option value="Motocicleta">Motocicleta</option>
+                    <option value="Lancha">Lancha</option>
+                </select>
+            </div>
+
+            <div>
                 <label>Categoría</label>
                 <select id="editCategoria">
                     <option value="Químicos">Químicos</option>
@@ -546,6 +565,7 @@ Eliminar
 const tbody = document.getElementById("inventory-body");
 const search = document.getElementById("search");
 const category = document.getElementById("categoryFilter");
+const tipoFilterSelect = document.getElementById("tipoFilter");
 
 const modalDelete = document.getElementById("modalDelete");
 const cancelDelete = document.getElementById("cancelDelete");
@@ -559,6 +579,7 @@ const editCodigo = document.getElementById("editCodigo");
 const editNombre = document.getElementById("editNombre");
 const editMarca = document.getElementById("editMarca");
 const editProveedor = document.getElementById("editProveedor");
+const editTipo = document.getElementById("editTipo");
 const editCategoria = document.getElementById("editCategoria");
 const compatibilidadesEditContainer = document.getElementById("compatibilidadesEdit");
 const editPrecio = document.getElementById("editPrecio");
@@ -616,13 +637,15 @@ async function cargarInventario(){
     data.forEach(producto=>{
 
         tbody.innerHTML += `
-        <tr data-category="${producto.categoria}" data-id="${producto.id}">
+        <tr data-category="${producto.categoria}" data-tipo="${producto.tipo || ''}" data-id="${producto.id}">
 
             <td>${producto.codigo_producto}</td>
 
             <td>${producto.nombre_pieza}</td>
 
             <td>${producto.marca}</td>
+
+            <td>${producto.tipo || 'N/A'}</td>
 
             <td>${formatCompatibilidades(producto.compatibilidades)}</td>
 
@@ -676,23 +699,28 @@ cargarInventario();
 
 search.addEventListener("input", filterTable);
 category.addEventListener("change", filterTable);
+tipoFilterSelect.addEventListener("change", filterTable);
 
 function filterTable(){
 
     const texto = search.value.toLowerCase();
     const categoria = category.value.toLowerCase();
+    const tipo = tipoFilterSelect.value.toLowerCase();
 
     document.querySelectorAll("#inventory-body tr").forEach(row=>{
 
         const contenido = row.innerText.toLowerCase();
         const cat = row.dataset.category.toLowerCase();
+        const rowTipo = (row.dataset.tipo || "").toLowerCase();
 
         const coincideTexto = contenido.includes(texto);
         const coincideCategoria =
             categoria === "" || cat === categoria;
+        const coincideTipo =
+            tipo === "" || rowTipo === tipo;
 
         row.style.display =
-            coincideTexto && coincideCategoria
+            coincideTexto && coincideCategoria && coincideTipo
             ? ""
             : "none";
 
@@ -883,6 +911,7 @@ modalDelete.addEventListener("click",(e)=>{
     editNombre.value = producto.nombre_pieza || "";
     editMarca.value = producto.marca || "";
     editProveedor.value = producto.proveedor || "";
+    editTipo.value = producto.tipo || "Auto";
     editCategoria.value = producto.categoria || "";
     editPrecio.value = producto.precio;
     editStock.value = producto.stock;
@@ -918,6 +947,7 @@ modalDelete.addEventListener("click",(e)=>{
     const nuevoNombre = editNombre.value.trim();
     const nuevaMarca = editMarca.value.trim();
     const nuevoProveedor = editProveedor.value.trim();
+    const nuevoTipo = editTipo.value;
     const nuevaCategoria = editCategoria.value;
     const nuevoPrecio = parseFloat(editPrecio.value);
     const nuevoStock = parseInt(editStock.value);
@@ -956,6 +986,7 @@ modalDelete.addEventListener("click",(e)=>{
             nombre_pieza: nuevoNombre,
             marca: nuevaMarca,
             proveedor: nuevoProveedor,
+            tipo: nuevoTipo,
             categoria: nuevaCategoria,
             compatibilidades: nuevasCompatibilidades,
             precio: nuevoPrecio,
