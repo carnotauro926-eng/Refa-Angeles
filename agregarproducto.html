@@ -183,6 +183,26 @@ button:hover{
     color:white;
 }
 
+.tipo-checkboxes{
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+    padding:10px 0;
+}
+
+.tipo-checkboxes label{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-weight:normal;
+    cursor:pointer;
+}
+
+.tipo-checkboxes input{
+    width:auto;
+    cursor:pointer;
+}
+
 .compatibilidad{
 
     display:grid;
@@ -318,13 +338,15 @@ button:hover{
             </div>
 
             <div>
-                <label>Tipo</label>
-                <select id="tipo" required>
-                    <option value="" disabled selected>Selecciona un tipo</option>
-                    <option value="Auto">Auto</option>
-                    <option value="Motocicleta">Motocicleta</option>
-                    <option value="Lancha">Lancha</option>
-                </select>
+                <label>Tipo (puede seleccionar varios)</label>
+                <div class="tipo-checkboxes">
+                    <label><input type="checkbox" class="tipoCheckbox" value="Auto"> Auto</label>
+                    <label><input type="checkbox" class="tipoCheckbox" value="Motocicleta"> Motocicleta</label>
+                    <label><input type="checkbox" class="tipoCheckbox" value="Lancha"> Lancha</label>
+                </div>
+                <span id="tipoError" style="display:none;color:#d9534f;font-size:0.85rem;margin-top:4px;">
+                    ⚠️ Selecciona al menos un tipo.
+                </span>
             </div>
 
             <!-- CATEGORÍA ACTUALIZADA -->
@@ -439,6 +461,17 @@ if (!datosValidos) {
 
 
 
+const tiposSeleccionados = Array.from(
+    document.querySelectorAll(".tipoCheckbox:checked")
+).map(cb => cb.value);
+
+document.getElementById("tipoError").style.display =
+    tiposSeleccionados.length === 0 ? "inline-block" : "none";
+
+if (tiposSeleccionados.length === 0) {
+    return;
+}
+
     // Crear objeto del producto
     const producto = {
 
@@ -458,7 +491,7 @@ if (!datosValidos) {
 
         categoria: document.getElementById("categoria").value,
 
-        tipo: document.getElementById("tipo").value
+        tipo: tiposSeleccionados
 
     };
 
@@ -512,6 +545,7 @@ if (!datosValidos) {
     primera.querySelector(".anio_fin").value = "";
 
     document.getElementById("modalSuccess").style.display = "none";
+    document.getElementById("tipoError").style.display = "none";
 
 });
 
