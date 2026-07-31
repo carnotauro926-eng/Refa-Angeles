@@ -609,99 +609,297 @@ async function finalizarVenta(){
     }
 
 }
-    
+
     function imprimirTicket(ventaId, total, efectivo, cambio, carrito, descuento = 0){
 
-    const fecha = new Date().toLocaleString("es-MX");
+    const ahora = new Date();
+
+    const fecha = ahora.toLocaleDateString("es-MX");
+    const hora = ahora.toLocaleTimeString("es-MX", {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+
+    const subtotal = carrito.reduce((s,p)=>s+p.subtotal,0);
 
     let productosHTML = "";
 
-    carrito.forEach(item => {
+    carrito.forEach(item=>{
+
         productosHTML += `
-            <tr>
-                <td>${item.producto}</td>
-                <td style="text-align:center">${item.cantidad}</td>
-                <td style="text-align:right">$${item.subtotal.toFixed(2)}</td>
-            </tr>
+        <tr>
+            <td style="width:65%;word-break:break-word;">
+                ${item.producto}
+            </td>
+
+            <td style="width:10%;text-align:center;">
+                ${item.cantidad}
+            </td>
+
+            <td style="width:25%;text-align:right;">
+                $${item.subtotal.toFixed(2)}
+            </td>
+        </tr>
         `;
+
     });
 
     const ticket = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Ticket</title>
-        <style>
-            body{
-                font-family: monospace;
-                width:80mm;
-                margin:0;
-                padding:10px;
-                font-size:12px;
-            }
-            h2,h3,p{
-                text-align:center;
-                margin:2px 0;
-            }
-            table{
-                width:100%;
-                border-collapse:collapse;
-            }
-            td{
-                padding:2px 0;
-            }
-            hr{
-                border:none;
-                border-top:1px dashed #000;
-                margin:6px 0;
-            }
-            .right{text-align:right;}
-        </style>
-    </head>
-    <body>
+<!DOCTYPE html>
+<html>
 
-        <h2>REFA ANGELES</h2>
-<p><strong>Ticket de Venta</strong></p>
+<head>
 
-<p>Explanada los Jarochos, Local 2</p>
-<p>Bulevard Guillermo Cházaro</p>
-<p>Tlacotalpan, Veracruz</p>
+<style>
+@page{
+    size:80mm auto;
+    margin:0;
+}
+
+html{
+    width:80mm;
+}
+
+body{
+
+    width:72mm;
+    margin:0 auto;
+    padding:4mm;
+
+    font-family:Arial,Helvetica,sans-serif;
+    color:#333;
+
+    font-size:15px;
+    line-height:1.4;
+
+}
+
+h1{
+
+    text-align:center;
+    margin:0;
+
+    font-size:30px;
+    font-style:italic;
+    letter-spacing:1px;
+
+}
+
+.center{
+
+    text-align:center;
+    line-height:1.4;
+
+}
+
+hr{
+
+    border:none;
+    border-top:2px dashed #333;
+    margin:12px 0;
+
+}
+
+table{
+
+    width:100%;
+    border-collapse:collapse;
+
+}
+
+th{
+
+    text-align:left;
+    padding-bottom:6px;
+    font-size:15px;
+
+}
+
+td{
+
+    padding:3px 0;
+    vertical-align:top;
+
+}
+
+.right{
+
+    text-align:right;
+
+}
+
+.total{
+
+    font-size:18px;
+
+}
+
+.gracias{
+
+    text-align:center;
+    margin-top:25px;
+
+    font-size:18px;
+    font-weight:bold;
+    font-style:italic;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>REFA ANGELES</h1>
+
+<div class="center">
+
+Explanada los Jarochos, Local 2<br>
+Bulevard Guillermo Cházaro<br>
+Tlacotalpan, Veracruz
+
+</div>
 
 <hr>
 
-<p>${fecha}</p>
+<div>
 
-        <hr>
+<b>Fecha:</b> ${fecha}<br><br>
 
-        <table>
-            ${productosHTML}
-        </table>
+<b>Hora:</b> ${hora}
 
-        <hr>
+</div>
 
-        <p>Descuento: ${descuento}%</p>
-        <p>Total: $${total.toFixed(2)}</p>
-        <p>Efectivo: $${efectivo.toFixed(2)}</p>
-        <p>Cambio: $${cambio.toFixed(2)}</p>
+<hr>
 
-        <hr>
+<table>
 
-        <h3>¡Gracias por su compra!</h3>
+<tr>
 
-    </body>
-    </html>
-    `;
+<th>Producto</th>
+<th style="text-align:center;">Cant</th>
+<th class="right">Total</th>
+
+</tr>
+
+</table>
+
+<hr>
+
+<table>
+
+${productosHTML}
+
+</table>
+
+<hr>
+
+<table>
+
+<tr>
+
+<td class="total"><b>Total:</b></td>
+
+<td class="right total">
+
+$${subtotal.toFixed(2)}
+
+</td>
+
+</tr>
+
+</table>
+
+<hr>
+
+<table>
+
+<tr>
+
+<td>DESCUENTO:</td>
+
+<td style="text-align:center;">
+${descuento}%
+</td>
+
+<td class="right"></td>
+
+</tr>
+
+<tr>
+
+<td><b>TOTAL A PAGAR:</b></td>
+
+<td></td>
+
+<td class="right">
+
+<b>$${total.toFixed(2)}</b>
+
+</td>
+
+</tr>
+
+<tr>
+
+<td>EFECTIVO:</td>
+
+<td></td>
+
+<td class="right">
+
+$${efectivo.toFixed(2)}
+
+</td>
+
+</tr>
+
+<tr>
+
+<td>CAMBIO:</td>
+
+<td></td>
+
+<td class="right">
+
+$${cambio.toFixed(2)}
+
+</td>
+
+</tr>
+
+</table>
+
+<div class="gracias">
+
+¡GRACIAS POR SU COMPRA!
+
+</div>
+
+<script>
+
+window.onload=()=>{
+
+    window.print();
+
+    window.onafterprint=()=>window.close();
+
+}
+
+</script>
+
+</body>
+
+</html>
+`;
 
     const ventana = window.open("", "_blank");
 
-    ventana.document.open();
     ventana.document.write(ticket);
+
     ventana.document.close();
 
-    ventana.onload = () => {
-        ventana.print();
-        ventana.onafterprint = () => ventana.close();
-    };
 }
 
 function regresarPanel(){
