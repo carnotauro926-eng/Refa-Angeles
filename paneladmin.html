@@ -885,17 +885,32 @@ async function obtenerVentas(){
 
 }
 
+// Inicio del día calendario (medianoche de hoy)
+function calcularInicioDia(ahora){
+    return new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+}
+
+// Inicio de la semana calendario (lunes) a partir del inicio del día
+function calcularInicioSemana(inicioDia){
+    const diaSemana = inicioDia.getDay(); // 0=domingo,1=lunes,...,6=sábado
+    const diasDesdeLunes = (diaSemana === 0) ? 6 : diaSemana - 1;
+    const inicio = new Date(inicioDia);
+    inicio.setDate(inicio.getDate() - diasDesdeLunes);
+    return inicio;
+}
+
+// Inicio del mes calendario (día 1)
+function calcularInicioMes(ahora){
+    return new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+}
+
 function calcularResumen(ventasData){
 
     const ahora = new Date();
 
-    const inicioDia = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
-
-    const inicioSemana = new Date(inicioDia);
-    inicioSemana.setDate(inicioSemana.getDate() - 6);
-
-    const inicioMes = new Date(inicioDia);
-    inicioMes.setDate(inicioMes.getDate() - 29);
+    const inicioDia = calcularInicioDia(ahora);
+    const inicioSemana = calcularInicioSemana(inicioDia);
+    const inicioMes = calcularInicioMes(ahora);
 
     let totalDia = 0, totalSemana = 0, totalMes = 0;
     const ventasHoyPorHora = {};
@@ -925,6 +940,105 @@ function calcularResumen(ventasData){
 }
 
 // ===============================
+// CORTES AUTOMÁTICOS (día / semana / mes)
+// ===============================
+// Cada vez que se abre el panel se revisa si ya pasó el límite del
+// periodo desde el último corte guardado. Si pasó, se cierra ese
+// periodo (se guarda su total en la tabla "cortes") y el contador
+// del periodo actual arranca en $0 de forma automática.
+
+async function obtenerUltimoCorte(tipo){
+
+    const { data, error } = await supabaseClient
+        .from("cortes")
+        .select("*")
+        .eq("tipo", tipo)
+        .order("fecha_fin", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if(error){
+        console.error("Error obteniendo último corte de "+tipo, error);
+        return null;
+    }
+
+    return data;
+
+}
+
+async function cerrarCorte(tipo, fechaInicio, fechaFin, ventasData){
+
+    let total = 0, cantidad = 0;
+
+    ventasData.forEach(v=>{
+        const fechaVenta = new Date(v.fecha);
+        if(fechaVenta >= fechaInicio && fechaVenta < fechaFin){
+            total += Number(v.total) || 0;
+            cantidad++;
+        }
+    });
+
+    const { error } = await supabaseClient
+        .from("cortes")
+        .insert({
+            tipo: tipo,
+            fecha_inicio: fechaInicio.toISOString(),
+            fecha_fin: fechaFin.toISOString(),
+            total_ventas: total,
+            num_ventas: cantidad
+        });
+
+    if(error){
+        console.error("Error guardando corte de "+tipo, error);
+    }else{
+        console.log("Corte de "+tipo+" cerrado: $"+total+" ("+cantidad+" ventas)");
+    }
+
+}
+
+async function procesarCortesAutomaticos(ventasData){
+
+    const ahora = new Date();
+
+    const inicioDiaActual = calcularInicioDia(ahora);
+    const inicioSemanaActual = calcularInicioSemana(inicioDiaActual);
+    const inicioMesActual = calcularInicioMes(ahora);
+
+    const periodos = [
+        { tipo: "dia", inicioActual: inicioDiaActual },
+        { tipo: "semana", inicioActual: inicioSemanaActual },
+        { tipo: "mes", inicioActual: inicioMesActual }
+    ];
+
+    for(const periodo of periodos){
+
+        const ultimoCorte = await obtenerUltimoCorte(periodo.tipo);
+
+        // Primera vez que corre para este tipo: no hay corte previo que
+        // sirva de referencia. Se siembra uno "vacío" que marca el inicio
+        // del periodo actual, para que desde el próximo cambio de
+        // día/semana/mes ya se pueda cerrar automáticamente.
+        if(!ultimoCorte){
+            await cerrarCorte(periodo.tipo, periodo.inicioActual, periodo.inicioActual, []);
+            continue;
+        }
+
+        const fechaFinUltimoCorte = new Date(ultimoCorte.fecha_fin);
+
+        // Si el último corte guardado ya cerró hasta el inicio del periodo
+        // actual (o más), no hay nada pendiente por cerrar.
+        if(fechaFinUltimoCorte >= periodo.inicioActual) continue;
+
+        // Cierra el tramo que quedó pendiente entre el último corte y el
+        // inicio del periodo actual (cubre el caso de que el panel no se
+        // haya abierto justo cuando cambió el día/semana/mes).
+        await cerrarCorte(periodo.tipo, fechaFinUltimoCorte, periodo.inicioActual, ventasData);
+
+    }
+
+}
+
+// ===============================
 // ACTUALIZACIÓN DEL DASHBOARD
 // ===============================
 
@@ -935,6 +1049,11 @@ async function actualizarDashboard(){
     if(ventasData === null){
         return; // Ya se mostró el error en consola; no sobreescribimos la vista con ceros.
     }
+
+    // Antes de calcular los totales en curso, revisa si ya pasó el
+    // límite del día/semana/mes y, si es así, cierra automáticamente
+    // ese periodo guardándolo en la tabla "cortes".
+    await procesarCortesAutomaticos(ventasData);
 
     const { totalDia, totalSemana, totalMes, ventasHoyPorHora } = calcularResumen(ventasData);
 
@@ -1086,5 +1205,6 @@ function generarPDF(){
 
 </script>
 
+    
 </body>
 </html>
