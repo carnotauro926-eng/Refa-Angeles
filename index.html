@@ -248,12 +248,6 @@ body{
                 <div class="input-group">
                     <input type="password" class="input-field" id="pass" placeholder="Contraseña" required>
                 </div>
-                
-                <!-- SECCIÓN MULTIMEDIA (Múltiples fotos y videos largos) -->
-                <div class="input-group">
-                    <label for="mediaInput" style="font-size:14px; color:#555; display:block; margin-bottom:8px;">Seleccionar fotos o videos:</label>
-                    <input type="file" class="input-field" id="mediaInput" accept="image/*,video/*" multiple style="padding: 12px;">
-                </div>
 
                 <div class="input-group hidden" id="role-container">
                     <select class="select-field" id="role">
@@ -278,7 +272,6 @@ body{
         const btnSubmit = document.getElementById('btn-submit');
         const roleContainer = document.getElementById('role-container');
         const roleSelect = document.getElementById('role');
-        const mediaInput = document.getElementById('mediaInput');
 
         const formMessage = document.getElementById('form-message');
 
@@ -330,28 +323,6 @@ body{
     btnSubmit.disabled = true;
 
     try {
-        // Manejo de archivos multimedia seleccionados (Múltiples y aptos para videos largos)
-        const files = mediaInput.files;
-        if (files && files.length > 0) {
-            mostrarMensaje(`Subiendo ${files.length} archivo(s)... Por favor espera.`, "success");
-            
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const fileName = `${Date.now()}_${file.name}`;
-                
-                // Subida binaria directa a Supabase Storage (ideal para videos largos sin saturar RAM)
-                const { data: uploadData, error: uploadError } = await supabaseClient.storage
-                    .from('multimedia') // Asegúrate de tener un bucket llamado 'multimedia' en Supabase
-                    .upload(fileName, file);
-
-                if (uploadError) {
-                    console.error("Error al subir archivo:", uploadError.message);
-                    mostrarMensaje(`Error al subir el archivo ${file.name}`, "error");
-                    btnSubmit.disabled = false;
-                    return;
-                }
-            }
-        }
 
         if (isLogin) {
 
@@ -422,7 +393,7 @@ body{
             // Volver al formulario de inicio de sesión
             tabLogin.click();
             document.getElementById("auth-form").reset();
-            mostrarMensaje("Cuenta creada y archivos procesados con éxito. Ya puedes iniciar sesión.", "success");
+            mostrarMensaje("Cuenta creada con éxito. Ya puedes iniciar sesión.", "success");
         }
 
     } finally {
